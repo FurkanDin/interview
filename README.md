@@ -58,8 +58,8 @@ Turkpin projelerinde genel olarak PHP, JavaScript, TypeScript, React, Next.js, M
 Bu repository'yi kendi GitHub hesabınıza fork edin ve ardından bilgisayarınıza klonlayın.
 
 ```bash
-git clone https://github.com/kullaniciadi/interview-test.git
-cd interview-test
+git clone https://github.com/kullaniciadi/interview.git
+cd interview
 ```
 
 ### 2. Bağımlılıkları Yükleyin
