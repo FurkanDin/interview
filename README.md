@@ -121,15 +121,6 @@ Test kullanıcı bilgileri dökümantasyonda yer almaktadır. Bu bilgileri kulla
 * Mevcut sipariş detaylarını kullanıcıya gösterin.
 * Hata durumlarında anlaşılır mesajlar kullanın.
 
-### 5. Sipariş Durumu
-
-Sipariş anlık olarak tamamlanmıyorsa durumunu belirli aralıklarla sorgulayın.
-
-* Gereksiz sıklıkta API isteği göndermeyin.
-* Maksimum deneme süresi veya sayısı belirleyin.
-* Sipariş sonuçlandığında sorgulamayı durdurun.
-* Başarısız, iptal edilmiş ve zaman aşımına uğramış durumları yönetin.
-
 ## Teknik Gereksinimler
 
 * PHP OOP yaklaşımı kullanın.
@@ -315,16 +306,14 @@ Projenin tüm gereksinimlerinin tamamlanması tercih edilir ancak zorunlu değil
 
 ### Teslim Süreci
 
-1. **Fork:** Bu repository'yi kendi GitHub hesabınıza fork edin.
-2. **Geliştirme:** Çalışmalarınızı kendi fork'unuz üzerinde gerçekleştirin.
+2. **Geliştirme:** Çalışmalarınızı kendi repositoryniz üzerinde gerçekleştirin.
 3. **Commit:** Değişikliklerinizi anlamlı commit mesajlarıyla kaydedin.
-4. **Pull Request:** Ana repository'ye bir pull request gönderin.
-5. **Bildirim:** Pull request bağlantısını `oktay@turkpin.com` adresine gönderin.
+5. **Bildirim:** Repository bağlantısını `oktay@turkpin.com` adresine gönderin.
 
 ### Teslim E-postasında Bulunması Gerekenler
 
 * Adınız ve soyadınız
-* Repository ve pull request bağlantısı
+* Repository bağlantısı
 * Tamamladığınız bölümlerin kısa özeti
 * Tamamlayamadığınız bölümler
 * Bilinen hata veya eksiklikler
