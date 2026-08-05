@@ -172,7 +172,7 @@ Aşağıdaki çalışmalar zorunlu değildir ancak değerlendirmeye olumlu katk�
 
 > Projede bazı teknik eksiklikler ve iyileştirme alanları bulunabilir. Bunların tespit edilmesi ve doğru şekilde çözülmesi değerlendirmeye olumlu katkı sağlar.
 
-## Yapay Zekâ Kullanımıx
+## Yapay Zekâ Kullanımı
 
 Yapay zekâ araçlarını aşağıdaki amaçlarla kullanabilirsiniz:
 
