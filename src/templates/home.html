@@ -190,13 +190,24 @@
                 stockBadge = `<span class="badge bg-warning bg-opacity-25 text-warning rounded-pill"><i class="bi bi-clock-history me-1"></i>Ön Sipariş</span>`;
             }
 
-            const formattedPrice = parseFloat(product.price || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+            const formattedPrice = formatPrice(product.price);
+
+            // Grid Card Buttons & Quantity
+            const btnHemenAl = isOutOfStock 
+                ? `<button type="button" class="btn btn-secondary btn-sm rounded-3 py-2 disabled" disabled><i class="bi bi-slash-circle me-1"></i> Stok Tükendi</button>`
+                : `<button type="button" class="btn btn-gradient btn-sm rounded-3 py-2" onclick="placeOrder(this, '${product.id}')" id="btn_${product.id}"><i class="bi bi-lightning-charge-fill me-1"></i> Hemen Al</button>`;
+
+            const btnSepet = isOutOfStock
+                ? `<button type="button" class="btn btn-outline-secondary btn-sm rounded-3 py-2 disabled" disabled><i class="bi bi-cart-x me-1"></i> Stokta Yok</button>`
+                : `<button type="button" class="btn btn-outline-glass btn-sm rounded-3 py-2" onclick="addToCart('${product.id}')"><i class="bi bi-cart-plus me-1"></i> Sepete Ekle</button>`;
+
+            const qtyInputAttr = isOutOfStock ? 'disabled' : '';
 
             // Grid Card
             const cardCol = document.createElement('div');
             cardCol.className = 'col-md-6 col-lg-4';
             cardCol.innerHTML = `
-                <div class="glass-card h-100 p-4 d-flex flex-column justify-content-between">
+                <div class="glass-card h-100 p-4 d-flex flex-column justify-content-between ${isOutOfStock ? 'opacity-75' : ''}">
                     <div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div class="p-2.5 rounded-3 bg-primary bg-opacity-10 text-primary">
@@ -213,19 +224,15 @@
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <label class="form-label text-muted small mb-0 me-1">Miktar:</label>
                             <div class="input-group input-group-sm form-control-glass p-0 align-items-center" style="max-width: 130px;">
-                                <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', -1)"><i class="bi bi-dash"></i></button>
-                                <input type="number" class="form-control bg-transparent border-0 text-center fw-bold p-0" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_${product.id}">
-                                <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', 1)"><i class="bi bi-plus"></i></button>
+                                <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', -1)" ${qtyInputAttr}><i class="bi bi-dash"></i></button>
+                                <input type="number" class="form-control bg-transparent border-0 text-center fw-bold p-0" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_${product.id}" ${qtyInputAttr}>
+                                <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', 1)" ${qtyInputAttr}><i class="bi bi-plus"></i></button>
                             </div>
                         </div>
 
                         <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-gradient btn-sm rounded-3 py-2" onclick="placeOrder(this, '${product.id}')" id="btn_${product.id}">
-                                <i class="bi bi-lightning-charge-fill me-1"></i> Hemen Al
-                            </button>
-                            <button type="button" class="btn btn-outline-glass btn-sm rounded-3 py-2" onclick="addToCart('${product.id}')">
-                                <i class="bi bi-cart-plus me-1"></i> Sepete Ekle
-                            </button>
+                            ${btnHemenAl}
+                            ${btnSepet}
                         </div>
                     </div>
                 </div>
@@ -234,6 +241,7 @@
 
             // Table Row
             const tr = document.createElement('tr');
+            if (isOutOfStock) tr.className = 'opacity-75';
             tr.innerHTML = `
                 <td>
                     <div class="fw-bold">${product.name || 'Ürün'}</div>
@@ -243,15 +251,19 @@
                 <td class="fw-bold text-success">₺${formattedPrice}</td>
                 <td>
                     <div class="input-group input-group-sm form-control-glass p-0 align-items-center" style="max-width: 120px;">
-                        <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', -1)"><i class="bi bi-dash"></i></button>
-                        <input type="number" class="form-control bg-transparent border-0 text-center fw-bold p-0" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_tbl_${product.id}" onchange="syncQty('${product.id}', this.value)">
-                        <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', 1)"><i class="bi bi-plus"></i></button>
+                        <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', -1)" ${qtyInputAttr}><i class="bi bi-dash"></i></button>
+                        <input type="number" class="form-control bg-transparent border-0 text-center fw-bold p-0" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_tbl_${product.id}" onchange="syncQty('${product.id}', this.value)" ${qtyInputAttr}>
+                        <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', 1)" ${qtyInputAttr}><i class="bi bi-plus"></i></button>
                     </div>
                 </td>
                 <td class="text-end">
                     <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-gradient px-3" onclick="placeOrder(this, '${product.id}')">Hızlı Al</button>
-                        <button type="button" class="btn btn-outline-glass px-3" onclick="addToCart('${product.id}')"><i class="bi bi-cart-plus"></i></button>
+                        ${isOutOfStock 
+                            ? `<button type="button" class="btn btn-secondary disabled" disabled>Tükendi</button>`
+                            : `<button type="button" class="btn btn-gradient px-3" onclick="placeOrder(this, '${product.id}')">Hızlı Al</button>`}
+                        ${isOutOfStock
+                            ? `<button type="button" class="btn btn-outline-secondary disabled" disabled><i class="bi bi-cart-x"></i></button>`
+                            : `<button type="button" class="btn btn-outline-glass px-3" onclick="addToCart('${product.id}')"><i class="bi bi-cart-plus"></i></button>`}
                     </div>
                 </td>
             `;
@@ -316,6 +328,11 @@
         const product = loadedProductsList.find(p => p.id == productId);
         if (!product) return;
 
+        if (product.stock == 0) {
+            showToast('Stok Uyarısı', 'Stoku tükenmiş ürünler sepete eklenemez.', 'danger');
+            return;
+        }
+
         const qtyInput = document.getElementById(`quantity_${productId}`) || document.getElementById(`quantity_tbl_${productId}`);
         const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
 
@@ -373,6 +390,15 @@
         }
     }
 
+    function formatPrice(val) {
+        const num = parseFloat(val || 0);
+        if (num === 0) return '0.00';
+        if (num < 0.01 || Math.abs(num * 100 - Math.round(num * 100)) > 0.0001) {
+            return num.toFixed(4);
+        }
+        return num.toFixed(2);
+    }
+
     function renderCartItems() {
         const cart = getCart();
         const container = document.getElementById('cartItemsContainer');
@@ -401,7 +427,7 @@
                 <div class="glass-card p-3 d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="fw-bold mb-1">${item.name}</h6>
-                        <div class="text-success small font-mono">₺${item.price.toFixed(4)} x ${item.quantity} = <strong>₺${itemTotal.toFixed(2)}</strong></div>
+                        <div class="text-success small font-mono">₺${formatPrice(item.price)} × ${item.quantity} = <strong>₺${formatPrice(itemTotal)}</strong></div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <div class="input-group input-group-sm form-control-glass p-0 align-items-center" style="max-width: 90px;">
@@ -416,7 +442,7 @@
         });
         html += '</div>';
         container.innerHTML = html;
-        totalEl.innerText = `₺${total.toFixed(2)}`;
+        totalEl.innerText = `₺${formatPrice(total)}`;
     }
 
     async function processCartCheckout() {
@@ -465,6 +491,12 @@
     // Single Item Quick Order
     // -------------------------------------------------------------
     function placeOrder(btn, productId) {
+        const product = loadedProductsList.find(p => p.id == productId);
+        if (product && product.stock == 0) {
+            showToast('Stok Uyarısı', 'Stoku tükenmiş ürünler satın alınamaz.', 'danger');
+            return;
+        }
+
         const quantityInput = document.getElementById(`quantity_${productId}`) || document.getElementById(`quantity_tbl_${productId}`);
         const quantity = quantityInput ? quantityInput.value : 1;
 
