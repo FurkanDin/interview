@@ -467,6 +467,9 @@
             } catch(e) {
                 results.push({ name: item.name, success: false, message: 'Bağlantı hatası' });
             }
+
+            // Small delay between batch order requests
+            await new Promise(resolve => setTimeout(resolve, 200));
         }
 
         btn.disabled = false;

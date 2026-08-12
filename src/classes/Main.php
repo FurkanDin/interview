@@ -71,13 +71,6 @@ class Main
 
         $this->router->post('/api/order', function () {
             header('Content-Type: application/json');
-            
-            // Basic idempotency check for double submit protection
-            if (isset($_SESSION['last_order_time']) && (time() - $_SESSION['last_order_time'] < 5)) {
-                echo json_encode(['success' => false, 'message' => 'Lütfen işleminizin tamamlanmasını bekleyin.']);
-                exit;
-            }
-            $_SESSION['last_order_time'] = time();
 
             $productId = $_POST['product_id'] ?? null;
             $quantity = $_POST['quantity'] ?? 1;
@@ -87,6 +80,14 @@ class Main
                 echo json_encode(['success' => false, 'message' => 'Geçersiz ürün veya miktar.']);
                 exit;
             }
+
+            // Per-product double submit protection (1 second)
+            $orderKey = 'last_order_' . $productId;
+            if (isset($_SESSION[$orderKey]) && (time() - $_SESSION[$orderKey] < 1)) {
+                echo json_encode(['success' => false, 'message' => 'Lütfen işleminizin tamamlanmasını bekleyin.']);
+                exit;
+            }
+            $_SESSION[$orderKey] = time();
 
             $client = new \Turkpin\InterviewTest\TurkpinApiClient();
             try {
