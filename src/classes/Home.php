@@ -6,38 +6,29 @@ class Home
     {
         global $smarty;
 
-        $games = [
-            1 => 'Game 1',
-            2 => 'Game 2',
-            3 => 'Game 3',
-        ];
+        $games = [];
+        $products = []; // Will be loaded via AJAX
 
-        $products = [
-            [
-                'id' => 1,
-                'name' => 'Product 1',
-                'stock' => 10,
-                'min_order' => 1,
-                'max_order' => 5,
-                'price' => 100
-            ],
-            [
-                'id' => 2,
-                'name' => 'Product 2',
-                'stock' => 20,
-                'min_order' => 1,
-                'max_order' => 5,
-                'price' => 200
-            ],
-            [
-                'id' => 3,
-                'name' => 'Product 3',
-                'stock' => 30,
-                'min_order' => 1,
-                'max_order' => 5,
-                'price' => 300
-            ],
-        ];
+        try {
+            $client = new \Turkpin\InterviewTest\TurkpinApiClient();
+            $response = $client->getGames();
+            
+            // Assume response is array of games or has a 'data' key
+            if (isset($response['data']) && is_array($response['data'])) {
+                foreach ($response['data'] as $game) {
+                    $games[$game['id']] = $game['name'];
+                }
+            } else if (is_array($response)) {
+                // Mock mapping if API structure is direct array
+                foreach ($response as $item) {
+                    if (isset($item['id']) && isset($item['name'])) {
+                        $games[$item['id']] = $item['name'];
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            $smarty->assign('error', 'Oyun listesi alınırken bir hata oluştu: ' . $e->getMessage());
+        }
 
         $smarty->assign('games', $games);
         $smarty->assign('products', $products);

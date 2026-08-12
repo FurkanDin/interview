@@ -38,6 +38,50 @@ class Main
             $home->index();
         });
 
+        // API routes for frontend JS fetch calls
+        $this->router->get('/api/products/(\d+)', function ($gameId) {
+            header('Content-Type: application/json');
+            $client = new TurkpinApiClient();
+            try {
+                $response = $client->getProducts($gameId);
+                echo json_encode(['success' => true, 'data' => $response]);
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        });
+
+        $this->router->post('/api/order', function () {
+            header('Content-Type: application/json');
+            
+            // Basic idempotency check for double submit protection
+            if (isset($_SESSION['last_order_time']) && (time() - $_SESSION['last_order_time'] < 5)) {
+                echo json_encode(['success' => false, 'message' => 'Lütfen işleminizin tamamlanmasını bekleyin.']);
+                return;
+            }
+            $_SESSION['last_order_time'] = time();
+
+            $productId = $_POST['product_id'] ?? null;
+            $quantity = $_POST['quantity'] ?? 1;
+
+            if (!$productId || $quantity < 1) {
+                echo json_encode(['success' => false, 'message' => 'Geçersiz ürün veya miktar.']);
+                return;
+            }
+
+            $client = new TurkpinApiClient();
+            try {
+                $response = $client->createOrder($productId, $quantity);
+                if (isset($response['code']) && $response['code'] === '000') {
+                    echo json_encode(['success' => true, 'message' => 'Sipariş başarıyla oluşturuldu.']);
+                } else {
+                    $errorMsg = $response['message'] ?? 'Sipariş oluşturulamadı.';
+                    echo json_encode(['success' => false, 'message' => $errorMsg]);
+                }
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        });
+
         $this->router->run();
         $smarty->display('index.html');
     }
