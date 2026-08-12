@@ -60,19 +60,25 @@ class TurkpinApiClient
 
     public function getGames()
     {
-        return $this->request('game_list');
+        return $this->request('epinOyunListesi');
     }
 
     public function getProducts($gameId)
     {
-        return $this->request('game_products', ['game_id' => $gameId]);
+        return $this->request('epinUrunleri', ['oyunKodu' => $gameId]);
     }
 
-    public function createOrder($productId, $quantity)
+    public function createOrder($productId, $quantity, $gameId = null)
     {
-        return $this->request('create_order', [
-            'product_id' => $productId,
-            'quantity' => $quantity
-        ]);
+        $params = [
+            'urunKodu' => $productId,
+            'sipadet' => $quantity
+        ];
+        
+        if ($gameId) {
+            $params['oyunKodu'] = $gameId;
+        }
+        
+        return $this->request('epinSiparisYarat', $params);
     }
 }
