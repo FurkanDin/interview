@@ -14,7 +14,17 @@ class Home
             $response = $client->getGames();
             
             // Assume response is array of games or has a 'data' key
-            if (isset($response['data']) && is_array($response['data'])) {
+            // Check typical XML to Array converted structure for Turkpin
+            if (isset($response['params']['game'])) {
+                $gameData = $response['params']['game'];
+                if (isset($gameData['id'])) {
+                    $games[$gameData['id']] = $gameData['name'];
+                } else {
+                    foreach ($gameData as $game) {
+                        if (isset($game['id'])) $games[$game['id']] = $game['name'];
+                    }
+                }
+            } else if (isset($response['data']) && is_array($response['data'])) {
                 foreach ($response['data'] as $game) {
                     $games[$game['id']] = $game['name'];
                 }

@@ -23,10 +23,17 @@ class TurkpinApiClient
             'cmd' => $cmd
         ], $params);
 
+        // Convert data array to XML
+        $xmlData = '<APIRequest><params>';
+        foreach ($data as $key => $value) {
+            $xmlData .= "<{$key}>" . htmlspecialchars($value) . "</{$key}>";
+        }
+        $xmlData .= '</params></APIRequest>';
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->apiUrl);
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['DATA' => $xmlData]));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         
         // Timeout ayarı
