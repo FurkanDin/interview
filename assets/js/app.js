@@ -14,6 +14,14 @@
 // Global Application State
 // -------------------------------------------------------------
 
+/** Loads the server-rendered language catalogue without inline JavaScript. */
+try {
+    window.APP_LANG = JSON.parse(document.body.dataset.language || '{}');
+} catch (error) {
+    console.error('Language catalogue could not be loaded.', error);
+    window.APP_LANG = {};
+}
+
 /** @type {string|number|null} */
 let currentSelectedGameId = null;
 

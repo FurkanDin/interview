@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{$LANG.title}</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -172,7 +173,7 @@
     </style>
 </head>
 
-<body class="d-flex flex-column h-100">
+<body class="d-flex flex-column h-100" data-language="{$LANG_JSON|escape:'html'}">
     <!-- Sticky Glass Navbar -->
     <header class="sticky-top">
         <nav class="navbar navbar-expand-lg navbar-glass py-3">
@@ -292,10 +293,6 @@
 
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        window.APP_LANG = {$LANG_JSON nofilter};
-    </script>
 
     <!-- Application Main Script -->
     <script src="/assets/js/app.js"></script>
