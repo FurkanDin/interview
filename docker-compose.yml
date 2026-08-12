@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  turkpin-app:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      - API_URL=https://www.turkpin.net/api.php
+      - API_USERNAME=api@turkpin.net
+      - API_PASSWORD=@.nwjExrK4U5b_S@y
+    restart: unless-stopped
