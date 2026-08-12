@@ -1,51 +1,105 @@
-<div class="row mb-4">
-    <div class="col-12">
-        {if isset($error)}
-            <div class="alert alert-danger">
-                <strong>Hata:</strong> {$error}
-            </div>
-        {/if}
+<!-- Game Selection & Filter Header -->
+<div class="row g-4 mb-5 align-items-center">
+    <div class="col-lg-6">
+        <div class="glass-card p-4">
+            <label for="games" class="form-label text-muted small fw-semibold text-uppercase tracking-wider mb-2">
+                <i class="bi bi-controller text-indigo-400 me-1"></i> {$LANG.select_game_prompt}
+            </label>
+            <select class="form-select form-select-lg form-select-glass shadow-sm" id="games" onchange="fetchProducts(this.value)">
+                <option value="0">{$LANG.select_game_prompt}</option>
+                {foreach $games as $game_id => $game_name}
+                    <option value="{$game_id}">{$game_name}</option>
+                {/foreach}
+            </select>
+        </div>
     </div>
-    <div class="col-auto">
-        <select class="form-select" id="games" onchange="fetchProducts(this.value)">
-            <option value="0">{$LANG.all_games}</option>
-            {foreach $games as $game_id => $game_name}
-                <option value="{$game_id}">{$game_name}</option>
-            {/foreach}
-        </select>
+    
+    <div class="col-lg-6" id="filterContainer" style="display: none;">
+        <div class="glass-card p-4">
+            <label for="productSearchInput" class="form-label text-muted small fw-semibold text-uppercase tracking-wider mb-2">
+                <i class="bi bi-search me-1"></i> {$LANG.search_placeholder}
+            </label>
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0 text-muted" style="border-color: rgba(255, 255, 255, 0.12) !important;">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" id="productSearchInput" class="form-control form-control-glass border-start-0 ps-0" placeholder="{$LANG.search_placeholder}" onkeyup="filterProducts()">
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="table-responsive" id="products-container" style="display: none;">
-    <table class="table table-striped table-hover" id="products-table">
-        <thead>
-            <tr>
-                <th>{$LANG.prd_name}</th>
-                <th>{$LANG.stock}</th>
-                <th>{$LANG.price}</th>
-                <th>{$LANG.quantity}</th>
-                <th>İşlem</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Products will be loaded here via JS -->
-        </tbody>
-    </table>
+<!-- Empty State / Welcome Container -->
+<div id="welcomeState" class="text-center py-5 glass-card my-4">
+    <div class="p-4">
+        <div class="d-inline-flex p-3 rounded-circle bg-indigo-500 bg-opacity-10 text-indigo-400 mb-3" style="background: rgba(99, 102, 241, 0.15);">
+            <i class="bi bi-shop fs-1"></i>
+        </div>
+        <h3 class="fw-bold brand-title mb-2">{$LANG.select_game_prompt}</h3>
+        <p class="text-muted max-w-md mx-auto mb-0">Lütfen yukarıdaki menüden bir oyun seçerek mevcut ürünleri ve stok durumunu görüntüleyin.</p>
+    </div>
+</div>
+
+<!-- Products Showcase Container -->
+<div id="products-container" style="display: none;">
+    <!-- Section Header & Layout Toggle -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary border-opacity-25">
+        <div>
+            <h4 class="brand-title mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-grid-fill text-indigo-400"></i> <span id="selectedGameTitle">{$LANG.all_games}</span>
+            </h4>
+            <span class="badge bg-secondary bg-opacity-25 text-light fw-normal rounded-pill px-3 py-1" id="productCountBadge">0 {$LANG.items_count}</span>
+        </div>
+        
+        <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-outline-glass active" id="btnGridView" onclick="toggleProductLayout('grid')" title="Kart Görünümü">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+            </button>
+            <button type="button" class="btn btn-outline-glass" id="btnTableView" onclick="toggleProductLayout('table')" title="Tablo Görünümü">
+                <i class="bi bi-list-ul"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Product Grid View -->
+    <div class="row g-4 mb-5" id="products-grid">
+        <!-- Rendered via JS -->
+    </div>
+
+    <!-- Product Table View (Hidden by default) -->
+    <div class="table-responsive glass-card p-3 mb-5" id="products-table-wrapper" style="display: none;">
+        <table class="table table-dark table-hover align-middle mb-0" id="products-table">
+            <thead>
+                <tr class="text-muted border-secondary">
+                    <th>{$LANG.prd_name}</th>
+                    <th>{$LANG.stock}</th>
+                    <th>{$LANG.price}</th>
+                    <th style="width: 140px;">{$LANG.quantity}</th>
+                    <th class="text-end" style="width: 220px;">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rendered via JS -->
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <!-- Order Result Modal -->
 <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="orderModalLabel">Sipariş Sonucu</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-card text-white">
+      <div class="modal-header border-bottom border-secondary border-opacity-25 py-3">
+        <h5 class="modal-title brand-title d-flex align-items-center gap-2" id="orderModalLabel">
+            <i class="bi bi-receipt-cutoff text-indigo-400"></i> Sipariş Sonucu
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" id="orderModalBody">
-        <!-- Message will be injected here -->
+      <div class="modal-body p-4" id="orderModalBody">
+        <!-- Result message injected here -->
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+      <div class="modal-footer border-top border-secondary border-opacity-25 py-2">
+        <button type="button" class="btn btn-outline-glass btn-sm rounded-pill px-4" data-bs-dismiss="modal">Kapat</button>
       </div>
     </div>
   </div>
@@ -54,65 +108,379 @@
 <script>
 {literal}
     let currentSelectedGameId = null;
+    let loadedProductsList = [];
+    let currentLayout = 'grid';
 
+    // -------------------------------------------------------------
+    // Product Fetching & Layout Management
+    // -------------------------------------------------------------
     function fetchProducts(gameId) {
         currentSelectedGameId = gameId;
+        const welcomeState = document.getElementById('welcomeState');
         const container = document.getElementById('products-container');
+        const filterContainer = document.getElementById('filterContainer');
+        const grid = document.getElementById('products-grid');
         const tbody = document.querySelector('#products-table tbody');
+        const gameSelect = document.getElementById('games');
         
         if (gameId == 0) {
             container.style.display = 'none';
-            tbody.innerHTML = '';
+            filterContainer.style.display = 'none';
+            welcomeState.style.display = 'block';
+            loadedProductsList = [];
             return;
         }
 
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Yükleniyor...</td></tr>';
+        const selectedOptionText = gameSelect.options[gameSelect.selectedIndex].text;
+        document.getElementById('selectedGameTitle').innerText = selectedOptionText;
+
+        welcomeState.style.display = 'none';
+        filterContainer.style.display = 'block';
         container.style.display = 'block';
+        
+        grid.innerHTML = '<div class="col-12 text-center py-5 text-muted"><div class="spinner-border text-indigo-400" role="status"></div><p class="mt-2">Ürünler Yükleniyor...</p></div>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-indigo-400" role="status"></div> Yükleniyor...</td></tr>';
 
         fetch(`/api/products/${gameId}`)
             .then(res => res.json())
             .then(res => {
                 if (!res.success) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-danger text-center">${res.message}</td></tr>`;
+                    const errHTML = `<div class="alert alert-danger glass-card p-3">${res.message}</div>`;
+                    grid.innerHTML = `<div class="col-12">${errHTML}</div>`;
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-danger text-center py-4">${res.message}</td></tr>`;
                     return;
                 }
 
-                tbody.innerHTML = '';
-                let products = res.data.data || res.data; // Depending on API structure
+                let products = res.data.data || res.data;
                 if (!Array.isArray(products) || products.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Bu oyuna ait ürün bulunamadı.</td></tr>';
+                    const emptyHTML = `<div class="col-12 text-center py-5 text-muted"><i class="bi bi-box-seam fs-1 d-block mb-2"></i>Bu oyuna ait ürün bulunamadı.</div>`;
+                    grid.innerHTML = emptyHTML;
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Bu oyuna ait ürün bulunamadı.</td></tr>';
+                    document.getElementById('productCountBadge').innerText = '0 Ürün';
+                    loadedProductsList = [];
                     return;
                 }
 
-                products.forEach(product => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${product.name || 'Ürün'}</td>
-                        <td>${product.stock || 'Bilinmiyor'}</td>
-                        <td>${product.price || 0}</td>
-                        <td>
-                            <input type="number" class="form-control" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_${product.id}">
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="placeOrder(this, ${product.id})" id="btn_${product.id}">{/literal}{$LANG.buy}{literal}</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                loadedProductsList = products;
+                document.getElementById('productCountBadge').innerText = `${products.length} Ürün`;
+                renderProducts(products);
             })
             .catch(err => {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-danger text-center">Bağlantı hatası oluştu.</td></tr>';
+                grid.innerHTML = '<div class="col-12 text-center py-5 text-danger"><i class="bi bi-wifi-off fs-1 d-block mb-2"></i>Bağlantı hatası oluştu.</div>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-danger text-center py-4">Bağlantı hatası oluştu.</td></tr>';
             });
     }
 
+    function renderProducts(products) {
+        const grid = document.getElementById('products-grid');
+        const tbody = document.querySelector('#products-table tbody');
+
+        grid.innerHTML = '';
+        tbody.innerHTML = '';
+
+        products.forEach(product => {
+            const isOutOfStock = product.stock == 0;
+            const isPreOrder = product.pre_order === "true" || product.pre_order === true;
+            const isBarem = product.min_barem !== undefined;
+
+            // Badges
+            let stockBadge = `<span class="badge bg-success bg-opacity-25 text-success rounded-pill"><i class="bi bi-check-circle me-1"></i>Stok: ${product.stock}</span>`;
+            if (isOutOfStock) {
+                stockBadge = `<span class="badge bg-danger bg-opacity-25 text-danger rounded-pill"><i class="bi bi-x-circle me-1"></i>Stok Tükendi</span>`;
+            } else if (isPreOrder) {
+                stockBadge = `<span class="badge bg-warning bg-opacity-25 text-warning rounded-pill"><i class="bi bi-clock-history me-1"></i>Ön Sipariş</span>`;
+            }
+
+            const formattedPrice = parseFloat(product.price || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+
+            // Grid Card
+            const cardCol = document.createElement('div');
+            cardCol.className = 'col-md-6 col-lg-4';
+            cardCol.innerHTML = `
+                <div class="glass-card h-100 p-4 d-flex flex-column justify-content-between position-relative">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="p-2.5 rounded-3 bg-indigo-500 bg-opacity-10 text-indigo-400" style="background: rgba(99, 102, 241, 0.15);">
+                                <i class="bi bi-ticket-perforated fs-4"></i>
+                            </div>
+                            <div>${stockBadge}</div>
+                        </div>
+
+                        <h5 class="fw-bold brand-title mb-2 text-white">${product.name || 'Ürün'}</h5>
+                        <div class="fs-3 fw-extrabold text-success mb-3">₺${formattedPrice}</div>
+                    </div>
+
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <label class="form-label text-muted small mb-0 me-1">Miktar:</label>
+                            <div class="input-group input-group-sm form-control-glass p-0 align-items-center" style="max-width: 130px;">
+                                <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', -1)"><i class="bi bi-dash"></i></button>
+                                <input type="number" class="form-control bg-transparent border-0 text-center text-white fw-bold p-0" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_${product.id}">
+                                <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', 1)"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-gradient btn-sm rounded-3 py-2" onclick="placeOrder(this, '${product.id}')" id="btn_${product.id}">
+                                <i class="bi bi-lightning-charge-fill me-1"></i> Hemen Al
+                            </button>
+                            <button type="button" class="btn btn-outline-glass btn-sm rounded-3 py-2" onclick="addToCart('${product.id}')">
+                                <i class="bi bi-cart-plus me-1"></i> Sepete Ekle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(cardCol);
+
+            // Table Row
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <div class="fw-bold text-white">${product.name || 'Ürün'}</div>
+                    <small class="text-muted">ID: #${product.id}</small>
+                </td>
+                <td>${stockBadge}</td>
+                <td class="fw-bold text-success">₺${formattedPrice}</td>
+                <td>
+                    <div class="input-group input-group-sm form-control-glass p-0 align-items-center" style="max-width: 120px;">
+                        <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', -1)"><i class="bi bi-dash"></i></button>
+                        <input type="number" class="form-control bg-transparent border-0 text-center text-white fw-bold p-0" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_tbl_${product.id}" onchange="syncQty('${product.id}', this.value)">
+                        <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', 1)"><i class="bi bi-plus"></i></button>
+                    </div>
+                </td>
+                <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-gradient px-3" onclick="placeOrder(this, '${product.id}')">Hızlı Al</button>
+                        <button type="button" class="btn btn-outline-glass px-3" onclick="addToCart('${product.id}')"><i class="bi bi-cart-plus"></i></button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function toggleProductLayout(mode) {
+        currentLayout = mode;
+        const grid = document.getElementById('products-grid');
+        const tableWrapper = document.getElementById('products-table-wrapper');
+        const btnGrid = document.getElementById('btnGridView');
+        const btnTable = document.getElementById('btnTableView');
+
+        if (mode === 'grid') {
+            grid.style.display = 'flex';
+            tableWrapper.style.display = 'none';
+            btnGrid.classList.add('active');
+            btnTable.classList.remove('active');
+        } else {
+            grid.style.display = 'none';
+            tableWrapper.style.display = 'block';
+            btnGrid.classList.remove('active');
+            btnTable.classList.add('active');
+        }
+    }
+
+    function filterProducts() {
+        const query = document.getElementById('productSearchInput').value.toLowerCase();
+        const filtered = loadedProductsList.filter(p => p.name && p.name.toLowerCase().includes(query));
+        renderProducts(filtered);
+    }
+
+    function adjustQty(productId, delta) {
+        const input1 = document.getElementById(`quantity_${productId}`);
+        const input2 = document.getElementById(`quantity_tbl_${productId}`);
+        let val = parseInt(input1 ? input1.value : (input2 ? input2.value : 1)) || 1;
+        val = Math.max(1, val + delta);
+        if (input1) input1.value = val;
+        if (input2) input2.value = val;
+    }
+
+    function syncQty(productId, val) {
+        const input1 = document.getElementById(`quantity_${productId}`);
+        if (input1) input1.value = val;
+    }
+
+    // -------------------------------------------------------------
+    // Shopping Cart System (CartManager)
+    // -------------------------------------------------------------
+    function getCart() {
+        try {
+            return JSON.parse(localStorage.getItem('turkpin_cart_v1')) || [];
+        } catch(e) {
+            return [];
+        }
+    }
+
+    function saveCart(cart) {
+        localStorage.setItem('turkpin_cart_v1', JSON.stringify(cart));
+        updateCartBadge();
+        renderCartItems();
+    }
+
+    function addToCart(productId) {
+        const product = loadedProductsList.find(p => p.id == productId);
+        if (!product) return;
+
+        const qtyInput = document.getElementById(`quantity_${productId}`) || document.getElementById(`quantity_tbl_${productId}`);
+        const qty = parseInt(qtyInput ? qtyInput.value : 1) || 1;
+
+        let cart = getCart();
+        const existingIndex = cart.findIndex(item => item.id == productId);
+
+        if (existingIndex > -1) {
+            cart[existingIndex].quantity += qty;
+        } else {
+            cart.push({
+                id: product.id,
+                name: product.name,
+                price: parseFloat(product.price || 0),
+                quantity: qty,
+                gameId: currentSelectedGameId
+            });
+        }
+
+        saveCart(cart);
+        showToast('Sepet Güncellendi', `${product.name} (x${qty}) sepete eklendi!`, 'success');
+    }
+
+    function updateCartItemQty(productId, delta) {
+        let cart = getCart();
+        const index = cart.findIndex(item => item.id == productId);
+        if (index > -1) {
+            cart[index].quantity += delta;
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+            saveCart(cart);
+        }
+    }
+
+    function removeFromCart(productId) {
+        let cart = getCart();
+        cart = cart.filter(item => item.id != productId);
+        saveCart(cart);
+        showToast('Ürün Çıkarıldı', 'Ürün sepetinizden silindi.', 'info');
+    }
+
+    function clearCart() {
+        saveCart([]);
+        showToast('Sepet Temizlendi', 'Sepetiniz boşaltıldı.', 'info');
+    }
+
+    function updateCartBadge() {
+        const cart = getCart();
+        const badge = document.getElementById('cartCountBadge');
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        
+        if (totalItems > 0) {
+            badge.innerText = totalItems;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    function renderCartItems() {
+        const cart = getCart();
+        const container = document.getElementById('cartItemsContainer');
+        const summary = document.getElementById('cartSummaryContainer');
+        const totalEl = document.getElementById('cartTotalAmount');
+
+        if (cart.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-cart-x fs-1 d-block mb-3 opacity-50"></i>
+                    <p class="mb-0">Sepetinizde ürün bulunmamaktadır.</p>
+                </div>
+            `;
+            summary.style.display = 'none';
+            return;
+        }
+
+        summary.style.display = 'block';
+        let total = 0;
+        let html = '<div class="d-flex flex-column gap-3">';
+
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+            html += `
+                <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="fw-bold text-white mb-1">${item.name}</h6>
+                        <div class="text-success small font-mono">₺${item.price.toFixed(4)} x ${item.quantity} = <strong>₺${itemTotal.toFixed(2)}</strong></div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="input-group input-group-sm form-control-glass p-0 align-items-center" style="max-width: 90px;">
+                            <button class="btn btn-sm text-muted px-2 border-0" onclick="updateCartItemQty('${item.id}', -1)"><i class="bi bi-dash"></i></button>
+                            <span class="px-1 fw-bold text-white small">${item.quantity}</span>
+                            <button class="btn btn-sm text-muted px-2 border-0" onclick="updateCartItemQty('${item.id}', 1)"><i class="bi bi-plus"></i></button>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger border-0" onclick="removeFromCart('${item.id}')"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+        totalEl.innerText = `₺${total.toFixed(2)}`;
+    }
+
+    async function processCartCheckout() {
+        const cart = getCart();
+        if (cart.length === 0) return;
+
+        const btn = document.getElementById('btnCartCheckout');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>İşleniyor...';
+
+        let results = [];
+        for (const item of cart) {
+            const formData = new FormData();
+            formData.append('product_id', item.id);
+            formData.append('quantity', item.quantity);
+            formData.append('game_id', item.gameId || currentSelectedGameId);
+
+            try {
+                const res = await fetch('/api/order', { method: 'POST', body: formData }).then(r => r.json());
+                results.push({ name: item.name, success: res.success, message: res.message });
+                if (res.success) {
+                    saveOrderToHistory(item.name, item.quantity, res.message);
+                }
+            } catch(e) {
+                results.push({ name: item.name, success: false, message: 'Bağlantı hatası' });
+            }
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-shield-check me-1"></i> Siparişi Tamamla';
+
+        // Show checkout summary in modal
+        clearCart();
+        const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('cartDrawer'));
+        if (offcanvas) offcanvas.hide();
+
+        let modalHTML = '<div class="d-flex flex-column gap-2">';
+        results.forEach(r => {
+            const cls = r.success ? 'alert-success' : 'alert-danger';
+            modalHTML += `<div class="alert ${cls} mb-0 p-3"><strong>${r.name}:</strong> ${r.message}</div>`;
+        });
+        modalHTML += '</div>';
+
+        document.getElementById('orderModalBody').innerHTML = modalHTML;
+        new bootstrap.Modal(document.getElementById('orderModal')).show();
+    }
+
+    // -------------------------------------------------------------
+    // Single Item Quick Order
+    // -------------------------------------------------------------
     function placeOrder(btn, productId) {
-        const quantityInput = document.getElementById(`quantity_${productId}`);
+        const quantityInput = document.getElementById(`quantity_${productId}`) || document.getElementById(`quantity_tbl_${productId}`);
         const quantity = quantityInput ? quantityInput.value : 1;
 
-        // Double submit protection
         btn.disabled = true;
-        const originalText = btn.innerText;
-        btn.innerText = 'Bekleyiniz...';
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
         const selectedGame = currentSelectedGameId || document.getElementById('games').value;
 
@@ -121,29 +489,151 @@
         formData.append('quantity', quantity);
         formData.append('game_id', selectedGame);
 
-        fetch('/api/order', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(res => {
-            const modalBody = document.getElementById('orderModalBody');
-            if (res.success) {
-                modalBody.innerHTML = `<div class="alert alert-success">${res.message}</div>`;
-            } else {
-                modalBody.innerHTML = `<div class="alert alert-danger">${res.message}</div>`;
-            }
-            
-            const orderModal = new bootstrap.Modal(document.getElementById('orderModal'));
-            orderModal.show();
-        })
-        .catch(err => {
-            alert('Sipariş gönderilirken hata oluştu.');
-        })
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerText = originalText;
+        fetch('/api/order', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(res => {
+                const modalBody = document.getElementById('orderModalBody');
+                const product = loadedProductsList.find(p => p.id == productId);
+                const prodName = product ? product.name : 'Ürün';
+
+                if (res.success) {
+                    saveOrderToHistory(prodName, quantity, res.message);
+                    modalBody.innerHTML = `
+                        <div class="alert alert-success glass-card border-success text-white p-3 mb-0">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                <h6 class="mb-0 fw-bold">Sipariş Başarıyla Oluşturuldu!</h6>
+                            </div>
+                            <p class="mb-0 small">${res.message}</p>
+                        </div>
+                    `;
+                } else {
+                    modalBody.innerHTML = `
+                        <div class="alert alert-danger glass-card border-danger text-white p-3 mb-0">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-x-circle-fill text-danger fs-4"></i>
+                                <h6 class="mb-0 fw-bold">Sipariş Gönderilemedi</h6>
+                            </div>
+                            <p class="mb-0 small">${res.message}</p>
+                        </div>
+                    `;
+                }
+                
+                new bootstrap.Modal(document.getElementById('orderModal')).show();
+            })
+            .catch(err => {
+                showToast('Hata', 'Sipariş gönderilirken hata oluştu.', 'danger');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+    }
+
+    // -------------------------------------------------------------
+    // Order History & E-PIN Vault
+    // -------------------------------------------------------------
+    function saveOrderToHistory(productName, quantity, message) {
+        let history = [];
+        try { history = JSON.parse(localStorage.getItem('turkpin_history_v1')) || []; } catch(e){}
+        
+        // Extract E-PIN code if present
+        let epinCode = null;
+        if (message.includes('E-Pin Kodu:')) {
+            epinCode = message.split('E-Pin Kodu:')[1].trim();
+        }
+
+        history.unshift({
+            id: Date.now(),
+            date: new Date().toLocaleString('tr-TR'),
+            name: productName,
+            quantity: quantity,
+            message: message,
+            epinCode: epinCode
+        });
+
+        localStorage.setItem('turkpin_history_v1', JSON.stringify(history));
+    }
+
+    function renderOrderHistory() {
+        const container = document.getElementById('orderHistoryContainer');
+        let history = [];
+        try { history = JSON.parse(localStorage.getItem('turkpin_history_v1')) || []; } catch(e){}
+
+        if (history.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-clock-history fs-1 d-block mb-2 opacity-50"></i>
+                    <p class="mb-0">Henüz verilmiş bir siparişiniz yok.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<div class="d-flex flex-column gap-3">';
+        history.forEach(item => {
+            html += `
+                <div class="glass-card p-3 border-start border-4 border-indigo-500">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="fw-bold text-white mb-0">${item.name} (x${item.quantity})</h6>
+                            <small class="text-muted">${item.date}</small>
+                        </div>
+                        <span class="badge bg-success bg-opacity-25 text-success rounded-pill">Tamamlandı</span>
+                    </div>
+                    ${item.epinCode ? `
+                        <div class="p-2 rounded-3 bg-black bg-opacity-40 d-flex justify-content-between align-items-center mt-2 border border-secondary border-opacity-25">
+                            <code class="text-info fs-6">${item.epinCode}</code>
+                            <button class="btn btn-sm btn-outline-glass py-1 px-3 rounded-pill" onclick="copyToClipboard('${item.epinCode}')">
+                                <i class="bi bi-clipboard me-1"></i> Kopyala
+                            </button>
+                        </div>
+                    ` : `<p class="mb-0 text-muted small">${item.message}</p>`}
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Kopyalandı', 'E-Pin kodu panoya kopyalandı!', 'success');
         });
     }
+
+    // -------------------------------------------------------------
+    // Toast Notification System
+    // -------------------------------------------------------------
+    function showToast(title, message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toastId = 'toast_' + Date.now();
+        const iconClass = type === 'success' ? 'bi-check-circle-fill text-success' : (type === 'danger' ? 'bi-exclamation-octagon-fill text-danger' : 'bi-info-circle-fill text-info');
+        
+        const toastHTML = `
+            <div id="${toastId}" class="toast toast-glass align-items-center border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex p-3">
+                    <div class="me-3 fs-4"><i class="bi ${iconClass}"></i></div>
+                    <div class="toast-body p-0 flex-grow-1">
+                        <strong class="d-block text-white mb-1">${title}</strong>
+                        <span class="text-muted small">${message}</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', toastHTML);
+        const toastEl = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
+        toast.show();
+        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        updateCartBadge();
+        renderCartItems();
+    });
 {/literal}
 </script>
