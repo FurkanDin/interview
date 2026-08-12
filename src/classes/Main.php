@@ -91,12 +91,16 @@ class Main
             $client = new \Turkpin\InterviewTest\TurkpinApiClient();
             try {
                 $response = $client->createOrder($productId, $quantity, $gameId);
-                $errorCode = $response['params']['error'] ?? ($response['params']['HATA_NO'] ?? ($response['code'] ?? null));
+                $errorCode = $response['params']['HATA_NO'] ?? ($response['params']['error'] ?? ($response['code'] ?? null));
                 
                 if ($errorCode === '000') {
-                    echo json_encode(['success' => true, 'message' => 'Sipariş başarıyla oluşturuldu.']);
+                    $msg = 'Sipariş başarıyla oluşturuldu.';
+                    if (isset($response['params']['epin_list']['epin']['code'])) {
+                        $msg .= ' E-Pin Kodu: ' . $response['params']['epin_list']['epin']['code'];
+                    }
+                    echo json_encode(['success' => true, 'message' => $msg]);
                 } else {
-                    $errorMsg = $response['params']['error_desc'] ?? ($response['params']['HATA_ACIKLAMA'] ?? ($response['message'] ?? 'Sipariş oluşturulamadı.'));
+                    $errorMsg = $response['params']['HATA_ACIKLAMA'] ?? ($response['params']['error_desc'] ?? ($response['message'] ?? 'Sipariş oluşturulamadı.'));
                     echo json_encode(['success' => false, 'message' => $errorMsg]);
                 }
             } catch (\Exception $e) {

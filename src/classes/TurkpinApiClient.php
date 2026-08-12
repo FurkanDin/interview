@@ -78,4 +78,22 @@ class TurkpinApiClient
         
         return $this->request('epinSiparisYarat', $params);
     }
+
+    public function getOrderStatus($orderNo)
+    {
+        return $this->request('siparisDurumu', ['siparisNo' => $orderNo]);
+    }
+
+    public function getOrderList($startDate, $endDate)
+    {
+        return $this->request('siparisListesi', [
+            'baslangicTarihi' => $startDate,
+            'bitisTarihi' => $endDate
+        ]);
+    }
+
+    public function getBalance()
+    {
+        return $this->request('balance');
+    }
 }
