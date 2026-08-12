@@ -26,7 +26,7 @@ class TurkpinApiClient
         // Convert data array to XML
         $xmlData = '<APIRequest><params>';
         foreach ($data as $key => $value) {
-            $xmlData .= "<{$key}>" . htmlspecialchars($value) . "</{$key}>";
+            $xmlData .= "<{$key}>" . htmlspecialchars((string)($value ?? '')) . "</{$key}>";
         }
         $xmlData .= '</params></APIRequest>';
 
