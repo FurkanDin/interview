@@ -71,13 +71,10 @@ class TurkpinApiClient
     public function createOrder($productId, $quantity, $gameId = null)
     {
         $params = [
+            'oyunKodu' => $gameId,
             'urunKodu' => $productId,
-            'sipadet' => $quantity
+            'adet' => $quantity
         ];
-        
-        if ($gameId) {
-            $params['oyunKodu'] = $gameId;
-        }
         
         return $this->request('epinSiparisYarat', $params);
     }

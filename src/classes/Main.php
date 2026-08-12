@@ -81,6 +81,7 @@ class Main
 
             $productId = $_POST['product_id'] ?? null;
             $quantity = $_POST['quantity'] ?? 1;
+            $gameId = $_POST['game_id'] ?? null;
 
             if (!$productId || $quantity < 1) {
                 echo json_encode(['success' => false, 'message' => 'Geçersiz ürün veya miktar.']);
@@ -89,7 +90,7 @@ class Main
 
             $client = new \Turkpin\InterviewTest\TurkpinApiClient();
             try {
-                $response = $client->createOrder($productId, $quantity);
+                $response = $client->createOrder($productId, $quantity, $gameId);
                 $errorCode = $response['params']['error'] ?? ($response['params']['HATA_NO'] ?? ($response['code'] ?? null));
                 
                 if ($errorCode === '000') {

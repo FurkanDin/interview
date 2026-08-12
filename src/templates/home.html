@@ -111,9 +111,12 @@
         const originalText = btn.innerText;
         btn.innerText = 'Bekleyiniz...';
 
+        const selectedGame = document.getElementById('games').value;
+
         const formData = new FormData();
         formData.append('product_id', productId);
         formData.append('quantity', quantity);
+        formData.append('game_id', selectedGame);
 
         fetch('/api/order', {
             method: 'POST',
