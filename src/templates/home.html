@@ -45,6 +45,7 @@
 </div>
 
 <script>
+{literal}
     function fetchProducts(gameId) {
         const container = document.getElementById('products-container');
         const tbody = document.querySelector('#products-table tbody');
@@ -83,7 +84,7 @@
                             <input type="number" class="form-control" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_${product.id}">
                         </td>
                         <td>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="placeOrder(this, ${product.id})" id="btn_${product.id}">{$LANG.buy}</button>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="placeOrder(this, ${product.id})" id="btn_${product.id}">{/literal}{$LANG.buy}{literal}</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -131,4 +132,5 @@
             btn.innerText = originalText;
         });
     }
+{/literal}
 </script>
