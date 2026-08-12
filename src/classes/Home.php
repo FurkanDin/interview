@@ -2,10 +2,14 @@
 
 class Home
 {
+    public function __construct(
+        private readonly \Smarty\Smarty $view,
+        private readonly array $language
+    ) {
+    }
+
     public function index()
     {
-        global $smarty;
-
         $games = [];
         $products = []; 
 
@@ -35,15 +39,16 @@ class Home
             }
             
             if (empty($games)) {
-                $smarty->assign('error', 'Oyun listesi boş döndü veya yapı okunamadı. Ham Yanıt: ' . print_r($response, true));
+                $this->view->assign('error', $this->language['game_list_empty']);
             }
         } catch (\Exception $e) {
-            $smarty->assign('error', 'Oyun listesi alınırken bir hata oluştu: ' . $e->getMessage());
+            error_log('Game list request failed: ' . $e->getMessage());
+            $this->view->assign('error', $this->language['game_list_error']);
         }
 
-        $smarty->assign('games', $games);
-        $smarty->assign('products', $products);
+        $this->view->assign('games', $games);
+        $this->view->assign('products', $products);
 
-        $smarty->assign('template', 'home.html');
+        $this->view->assign('template', 'home.html');
     }
 }

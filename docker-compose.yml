@@ -5,8 +5,6 @@ services:
     build: .
     ports:
       - "8080:80"
-    environment:
-      - API_URL=https://www.turkpin.net/api.php
-      - API_USERNAME=api@turkpin.net
-      - API_PASSWORD=@.nwjExrK4U5b_S@y
+    env_file:
+      - .env
     restart: unless-stopped

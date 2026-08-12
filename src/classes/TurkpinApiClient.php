@@ -4,18 +4,22 @@ namespace Turkpin\InterviewTest;
 
 class TurkpinApiClient
 {
-    private $apiUrl;
-    private $username;
-    private $password;
+    private string $apiUrl;
+    private string $username;
+    private string $password;
 
     public function __construct()
     {
         $this->apiUrl = $_ENV['API_URL'] ?? 'https://www.turkpin.net/api.php';
-        $this->username = $_ENV['API_USERNAME'] ?? 'api@turkpin.net';
-        $this->password = $_ENV['API_PASSWORD'] ?? '@.nwjExrK4U5b_S@y';
+        $this->username = (string) ($_ENV['API_USERNAME'] ?? '');
+        $this->password = (string) ($_ENV['API_PASSWORD'] ?? '');
+
+        if ($this->username === '' || $this->password === '') {
+            throw new \RuntimeException('Turkpin API credentials are not configured.');
+        }
     }
 
-    private function request($cmd, $params = [])
+    private function request(string $cmd, array $params = []): array
     {
         $data = array_merge([
             'username' => $this->username,
@@ -26,7 +30,7 @@ class TurkpinApiClient
         // Convert data array to XML
         $xmlData = '<APIRequest><params>';
         foreach ($data as $key => $value) {
-            $xmlData .= "<{$key}>" . htmlspecialchars((string)($value ?? '')) . "</{$key}>";
+            $xmlData .= "<{$key}>" . htmlspecialchars((string)($value ?? ''), ENT_XML1 | ENT_QUOTES, 'UTF-8') . "</{$key}>";
         }
         $xmlData .= '</params></APIRequest>';
 
@@ -45,17 +49,24 @@ class TurkpinApiClient
         curl_close($ch);
 
         if ($error) {
-            throw new \Exception("API Connection Error: " . $error);
+            throw new \RuntimeException('API connection failed: ' . $error);
         }
 
         // Basit XML parse (Turkpin genelde XML kullanır)
         if (strpos($response, '<?xml') !== false) {
-            $xml = simplexml_load_string($response);
+            $xml = simplexml_load_string($response, 'SimpleXMLElement', LIBXML_NONET);
+            if ($xml === false) {
+                throw new \RuntimeException('Invalid XML response received from API.');
+            }
             return json_decode(json_encode($xml), true);
         }
 
         $decoded = json_decode($response, true);
-        return $decoded ?: $response;
+        if (!is_array($decoded)) {
+            throw new \RuntimeException('Invalid response received from API.');
+        }
+
+        return $decoded;
     }
 
     public function getGames()

@@ -5,36 +5,30 @@ require_once __DIR__ . '/TurkpinApiClient.php';
 class Main
 {
     public $router;
+    private $smarty;
+    private array $language;
 
-    public function __construct()
+    public function __construct(string $projectRoot, array $language)
     {
-        global $lang, $smarty;
-
-        $lang = $_SESSION['lang'] ?? 'tr';
-
-        if (isset($_GET['lang'])) {
-            $lang = $_GET['lang'];
-            $_SESSION['lang'] = $lang;
-        }
-
-        require_once __DIR__ . "/../languages/{$lang}.php";
-
-        $smarty = new Smarty\Smarty();
+        $this->language = $language;
+        $this->smarty = new Smarty\Smarty();
         $this->router = new \Bramus\Router\Router();
 
-        $smarty->setTemplateDir('src/templates');
-        $smarty->setCompileDir('/tmp');
+        $this->smarty->setTemplateDir($projectRoot . '/src/templates');
+        $this->smarty->setCompileDir(sys_get_temp_dir() . '/turkpin-smarty');
 
-        $smarty->assign('LANG', $lang);
-        $smarty->assign('langs', ['tr' => 'Türkçe', 'en' => 'English']);
+        $this->smarty->assign('LANG', $language);
+        $this->smarty->assign('LANG_JSON', json_encode(
+            $language,
+            JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+        ));
+        $this->smarty->assign('langs', ['tr' => 'Türkçe', 'en' => 'English']);
     }
 
     public function run()
     {
-        global $smarty;
-
         $this->router->get('/', function () {
-            $home = new Home();
+            $home = new Home($this->smarty, $this->language);
             $home->index();
         });
 
@@ -59,7 +53,7 @@ class Main
 
                 $errorCode = $response['params']['error'] ?? ($response['params']['HATA_NO'] ?? null);
                 if ($errorCode && $errorCode !== '000') {
-                    echo json_encode(['success' => false, 'message' => $response['params']['error_desc'] ?? ($response['params']['HATA_ACIKLAMA'] ?? 'API Hatası')]);
+                    echo json_encode(['success' => false, 'message' => $response['params']['error_desc'] ?? ($response['params']['HATA_ACIKLAMA'] ?? $this->language['api_error'])]);
                 } else {
                     echo json_encode(['success' => true, 'data' => $products]);
                 }
@@ -78,7 +72,7 @@ class Main
                 
                 $durumKodu = $params['DURUM_KODU'] ?? null;
                 $siparisDurumu = $params['SIPARIS_DURUMU'] ?? null;
-                $aciklama = $params['SIPARIS_DURUMU_ACIKLAMA'] ?? 'Sipariş durumu sorgulandı.';
+                $aciklama = $params['SIPARIS_DURUMU_ACIKLAMA'] ?? $this->language['status_processing'];
                 $ekstra = $params['EKSTRA'] ?? ($params['EXTRA'] ?? '');
 
                 echo json_encode([
@@ -182,14 +176,14 @@ class Main
             }
 
             if (!$productId || $quantity < 1) {
-                echo json_encode(['success' => false, 'message' => 'Geçersiz ürün veya miktar.']);
+                echo json_encode(['success' => false, 'message' => $this->language['invalid_product']]);
                 exit;
             }
 
             // Per-product double submit protection (1 second)
             $orderKey = 'last_order_' . $productId;
             if (isset($_SESSION[$orderKey]) && (time() - $_SESSION[$orderKey] < 1)) {
-                echo json_encode(['success' => false, 'message' => 'Lütfen işleminizin tamamlanmasını bekleyin.']);
+                echo json_encode(['success' => false, 'message' => $this->language['wait_message']]);
                 exit;
             }
             $_SESSION[$orderKey] = time();
@@ -200,13 +194,13 @@ class Main
                 $errorCode = $response['params']['HATA_NO'] ?? ($response['params']['error'] ?? ($response['code'] ?? null));
                 
                 if ($errorCode === '000') {
-                    $msg = 'Sipariş başarıyla oluşturuldu.';
+                    $msg = $this->language['order_created'];
                     if (isset($response['params']['epin_list']['epin']['code'])) {
                         $msg .= ' E-Pin Kodu: ' . $response['params']['epin_list']['epin']['code'];
                     }
                     echo json_encode(['success' => true, 'message' => $msg]);
                 } else {
-                    $errorMsg = $response['params']['HATA_ACIKLAMA'] ?? ($response['params']['error_desc'] ?? ($response['message'] ?? 'Sipariş oluşturulamadı.'));
+                    $errorMsg = $response['params']['HATA_ACIKLAMA'] ?? ($response['params']['error_desc'] ?? ($response['message'] ?? $this->language['order_failed']));
                     echo json_encode(['success' => false, 'message' => $errorMsg]);
                 }
             } catch (\Exception $e) {
@@ -216,6 +210,6 @@ class Main
         });
 
         $this->router->run();
-        $smarty->display('index.html');
+        $this->smarty->display('index.html');
     }
 }

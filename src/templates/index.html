@@ -186,7 +186,7 @@
 
                 <div class="d-flex align-items-center gap-2 gap-sm-3 ms-auto">
                     <!-- Theme Toggle Button -->
-                    <button class="btn btn-outline-glass btn-sm rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" type="button" id="themeToggleBtn" onclick="toggleTheme()" title="Tema Değiştir">
+                    <button class="btn btn-outline-glass btn-sm rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" type="button" id="themeToggleBtn" onclick="toggleTheme()" title="{$LANG.theme_toggle}">
                         <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
                     </button>
 
@@ -239,7 +239,7 @@
             <h5 class="offcanvas-title brand-title d-flex align-items-center gap-2" id="cartDrawerLabel">
                 <i class="bi bi-cart-check text-primary"></i> {$LANG.cart}
             </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{$LANG.close_label}"></button>
         </div>
         <div class="offcanvas-body d-flex flex-column p-4">
             <div id="cartItemsContainer" class="flex-grow-1 overflow-auto pe-1">
@@ -271,7 +271,7 @@
                     <h5 class="modal-title brand-title d-flex align-items-center gap-2" id="historyModalLabel">
                         <i class="bi bi-clock-history text-primary"></i> {$LANG.order_history}
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{$LANG.close_label}"></button>
                 </div>
                 <div class="modal-body p-4" id="orderHistoryContainer">
                     <!-- History items rendered via JS -->
@@ -292,6 +292,10 @@
 
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        window.APP_LANG = {$LANG_JSON nofilter};
+    </script>
 
     <!-- Application Main Script -->
     <script src="/assets/js/app.js"></script>

@@ -42,6 +42,19 @@ function formatPrice(val) {
 }
 
 /**
+ * Retrieves i18n translation from window.APP_LANG dictionary
+ * @param {string} key
+ * @param {string} fallback
+ * @returns {string}
+ */
+function i18n(key, fallback = '') {
+    if (window.APP_LANG && window.APP_LANG[key]) {
+        return window.APP_LANG[key];
+    }
+    return fallback;
+}
+
+/**
  * Maps Turkpin tax_type ID to official human-readable label
  * @param {string|number} taxType
  * @returns {string}
@@ -50,16 +63,16 @@ function getTaxLabel(taxType) {
     const type = String(taxType);
     switch (type) {
         case '0':
-            return 'KDV %0';
+            return i18n('vat_0');
         case '1':
         case '3':
-            return 'KDV %20';
+            return i18n('vat_20');
         case '2':
-            return 'Ürün KDV-0 / Hizmet KDV-20';
+            return i18n('vat_hybrid');
         case '5':
-            return 'Komisyon Faturası';
+            return i18n('vat_commission');
         default:
-            return `KDV %${type}`;
+            return `${i18n('tax_vat')} %${type}`;
     }
 }
 
@@ -107,7 +120,7 @@ function showToast(title, message, type = 'info') {
 function copyToClipboard(text) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(text).then(() => {
-            showToast('Kopyalandı', 'E-Pin kodu panoya kopyalandı!', 'success');
+            showToast(i18n('copied_title'), i18n('copied_msg'), 'success');
         });
     }
 }
@@ -125,7 +138,7 @@ function selectGameItem(gameId, gameName, event) {
 
     if (btnText) {
         btnText.innerHTML = gameId == 0 
-            ? `<i class="bi bi-controller text-primary fs-5"></i> Oyun Seçiniz`
+            ? `<i class="bi bi-controller text-primary fs-5"></i> ${i18n('select_game_prompt')}`
             : `<i class="bi bi-controller text-primary fs-5"></i> ${gameName}`;
     }
 
@@ -192,8 +205,8 @@ function fetchProducts(gameId) {
     if (filterContainer) filterContainer.style.display = 'block';
     container.style.display = 'block';
     
-    grid.innerHTML = '<div class="col-12 text-center py-5 text-muted"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Ürünler Yükleniyor...</p></div>';
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Yükleniyor...</td></tr>';
+    grid.innerHTML = `<div class="col-12 text-center py-5 text-muted"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">${i18n('loading_products')}</p></div>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> ${i18n('loading')}</td></tr>`;
 
     fetch(`/api/products/${gameId}`)
         .then(res => res.json())
@@ -207,23 +220,23 @@ function fetchProducts(gameId) {
 
             let products = res.data.data || res.data;
             if (!Array.isArray(products) || products.length === 0) {
-                const emptyHTML = `<div class="col-12 text-center py-5 text-muted"><i class="bi bi-box-seam fs-1 d-block mb-2"></i>Bu oyuna ait ürün bulunamadı.</div>`;
+                const emptyHTML = `<div class="col-12 text-center py-5 text-muted"><i class="bi bi-box-seam fs-1 d-block mb-2"></i>${i18n('no_products')}</div>`;
                 grid.innerHTML = emptyHTML;
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Bu oyuna ait ürün bulunamadı.</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">${i18n('no_products')}</td></tr>`;
                 const badge = document.getElementById('productCountBadge');
-                if (badge) badge.innerText = '0 Ürün';
+                if (badge) badge.innerText = `0 ${i18n('items_count')}`;
                 loadedProductsList = [];
                 return;
             }
 
             loadedProductsList = products;
             const badge = document.getElementById('productCountBadge');
-            if (badge) badge.innerText = `${products.length} Ürün`;
+            if (badge) badge.innerText = `${products.length} ${i18n('items_count')}`;
             renderProducts(products);
         })
         .catch(() => {
-            grid.innerHTML = '<div class="col-12 text-center py-5 text-danger"><i class="bi bi-wifi-off fs-1 d-block mb-2"></i>Bağlantı hatası oluştu.</div>';
-            tbody.innerHTML = '<tr><td colspan="5" class="text-danger text-center py-4">Bağlantı hatası oluştu.</td></tr>';
+            grid.innerHTML = `<div class="col-12 text-center py-5 text-danger"><i class="bi bi-wifi-off fs-1 d-block mb-2"></i>${i18n('connection_error')}</div>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="text-danger text-center py-4">${i18n('connection_error')}</td></tr>`;
         });
 }
 
@@ -244,27 +257,27 @@ function renderProducts(products) {
         const isPreOrder = product.pre_order === "true" || product.pre_order === true;
 
         // Stock Status Badges
-        let stockBadge = `<span class="badge bg-success bg-opacity-25 text-success rounded-pill"><i class="bi bi-check-circle me-1"></i>Stok: ${product.stock}</span>`;
+        let stockBadge = `<span class="badge bg-success bg-opacity-25 text-success rounded-pill"><i class="bi bi-check-circle me-1"></i>${i18n('stock_qty', 'Stok:')} ${product.stock}</span>`;
         if (isOutOfStock) {
-            stockBadge = `<span class="badge bg-danger bg-opacity-25 text-danger rounded-pill"><i class="bi bi-x-circle me-1"></i>Stok Tükendi</span>`;
+            stockBadge = `<span class="badge bg-danger bg-opacity-25 text-danger rounded-pill"><i class="bi bi-x-circle me-1"></i>${i18n('out_of_stock', 'Stok Tükendi')}</span>`;
         } else if (isPreOrder) {
-            stockBadge = `<span class="badge bg-warning bg-opacity-25 text-warning rounded-pill"><i class="bi bi-clock-history me-1"></i>Ön Sipariş</span>`;
+            stockBadge = `<span class="badge bg-warning bg-opacity-25 text-warning rounded-pill"><i class="bi bi-clock-history me-1"></i>${i18n('pre_order_tag', 'Ön Sipariş')}</span>`;
         }
 
         const formattedPrice = formatPrice(product.price);
         const qtyInputAttr = isOutOfStock ? 'disabled' : '';
         const taxRate = (product.tax_type !== undefined && product.tax_type !== null) ? product.tax_type : '0';
         const taxLabel = getTaxLabel(taxRate);
-        const taxBadge = `<span class="badge bg-secondary bg-opacity-25 text-body rounded-pill ms-1" title="Vergi Tipi"><i class="bi bi-percent me-1"></i>${taxLabel}</span>`;
+        const taxBadge = `<span class="badge bg-secondary bg-opacity-25 text-body rounded-pill ms-1" title="${i18n('vat_title', 'Vergi Tipi')}"><i class="bi bi-percent me-1"></i>${taxLabel}</span>`;
 
         // Grid Action Buttons
         const btnHemenAl = isOutOfStock 
-            ? `<button type="button" class="btn btn-secondary btn-sm rounded-3 py-2 disabled" disabled><i class="bi bi-slash-circle me-1"></i> Stok Tükendi</button>`
-            : `<button type="button" class="btn btn-gradient btn-sm rounded-3 py-2" onclick="placeOrder(this, '${product.id}')" id="btn_${product.id}"><i class="bi bi-lightning-charge-fill me-1"></i> Hemen Al</button>`;
+            ? `<button type="button" class="btn btn-secondary btn-sm rounded-3 py-2 disabled" disabled><i class="bi bi-slash-circle me-1"></i> ${i18n('out_of_stock', 'Stok Tükendi')}</button>`
+            : `<button type="button" class="btn btn-gradient btn-sm rounded-3 py-2" onclick="placeOrder(this, '${product.id}')" id="btn_${product.id}"><i class="bi bi-lightning-charge-fill me-1"></i> ${i18n('buy', 'Hemen Al')}</button>`;
 
         const btnSepet = isOutOfStock
-            ? `<button type="button" class="btn btn-outline-secondary btn-sm rounded-3 py-2 disabled" disabled><i class="bi bi-cart-x me-1"></i> Stokta Yok</button>`
-            : `<button type="button" class="btn btn-outline-glass btn-sm rounded-3 py-2" onclick="addToCart('${product.id}')"><i class="bi bi-cart-plus me-1"></i> Sepete Ekle</button>`;
+            ? `<button type="button" class="btn btn-outline-secondary btn-sm rounded-3 py-2 disabled" disabled><i class="bi bi-cart-x me-1"></i> ${i18n('out_of_stock_btn', 'Stokta Yok')}</button>`
+            : `<button type="button" class="btn btn-outline-glass btn-sm rounded-3 py-2" onclick="addToCart('${product.id}')"><i class="bi bi-cart-plus me-1"></i> ${i18n('add_to_cart', 'Sepete Ekle')}</button>`;
 
         // Render Grid Card Element
         const cardCol = document.createElement('div');
@@ -278,12 +291,12 @@ function renderProducts(products) {
                         </div>
                         <div class="d-flex align-items-center gap-1">${stockBadge}${taxBadge}</div>
                     </div>
-                    <h5 class="fw-bold brand-title mb-2">${product.name || 'Ürün'}</h5>
+                    <h5 class="fw-bold brand-title mb-2">${product.name || i18n('product_fallback_name')}</h5>
                     <div class="fs-3 fw-bold text-success mb-3">₺${formattedPrice}</div>
                 </div>
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-3">
-                        <label class="form-label text-muted small mb-0 me-1">Miktar:</label>
+                        <label class="form-label text-muted small mb-0 me-1">${i18n('quantity', 'Miktar')}:</label>
                         <div class="input-group input-group-sm form-control-glass p-0 align-items-center" style="max-width: 130px;">
                             <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', -1)" ${qtyInputAttr}><i class="bi bi-dash"></i></button>
                             <input type="number" class="form-control bg-transparent border-0 text-center fw-bold p-0" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_${product.id}" ${qtyInputAttr}>
@@ -304,7 +317,7 @@ function renderProducts(products) {
         if (isOutOfStock) tr.className = 'opacity-75';
         tr.innerHTML = `
             <td>
-                <div class="fw-bold">${product.name || 'Ürün'}</div>
+                <div class="fw-bold">${product.name || i18n('product_fallback_name')}</div>
                 <small class="text-muted">ID: #${product.id}</small>
             </td>
             <td>${stockBadge}</td>
@@ -322,8 +335,8 @@ function renderProducts(products) {
             <td class="text-end">
                 <div class="btn-group btn-group-sm">
                     ${isOutOfStock 
-                        ? `<button type="button" class="btn btn-secondary disabled" disabled>Tükendi</button>`
-                        : `<button type="button" class="btn btn-gradient px-3" onclick="placeOrder(this, '${product.id}')">Hızlı Al</button>`}
+                        ? `<button type="button" class="btn btn-secondary disabled" disabled>${i18n('out_of_stock_btn', 'Stokta Yok')}</button>`
+                        : `<button type="button" class="btn btn-gradient px-3" onclick="placeOrder(this, '${product.id}')">${i18n('fast_buy', 'Hızlı Al')}</button>`}
                     ${isOutOfStock
                         ? `<button type="button" class="btn btn-outline-secondary disabled" disabled><i class="bi bi-cart-x"></i></button>`
                         : `<button type="button" class="btn btn-outline-glass px-3" onclick="addToCart('${product.id}')"><i class="bi bi-cart-plus"></i></button>`}
@@ -417,7 +430,7 @@ function addToCart(productId) {
     if (!product) return;
 
     if (product.stock == 0) {
-        showToast('Stok Uyarısı', 'Stoku tükenmiş ürünler sepete eklenemez.', 'danger');
+        showToast(i18n('stock_warn_title', 'Stok Uyarısı'), i18n('stock_warn_msg_cart', 'Stoku tükenmiş ürünler sepete eklenemez.'), 'danger');
         return;
     }
 
@@ -443,7 +456,7 @@ function addToCart(productId) {
     }
 
     saveCart(cart);
-    showToast('Sepet Güncellendi', `${product.name} (x${qty}) sepete eklendi!`, 'success');
+    showToast(i18n('cart_updated_title', 'Sepet Güncellendi'), `${product.name} (x${qty})`, 'success');
 }
 
 /**
@@ -466,12 +479,12 @@ function removeFromCart(productId) {
     let cart = getCart();
     cart = cart.filter(item => item.id != productId);
     saveCart(cart);
-    showToast('Ürün Çıkarıldı', 'Ürün sepetinizden silindi.', 'info');
+    showToast(i18n('cart_removed_title', 'Ürün Çıkarıldı'), i18n('cart_removed_msg', 'Ürün sepetinizden silindi.'), 'info');
 }
 
 function clearCart() {
     saveCart([]);
-    showToast('Sepet Temizlendi', 'Sepetiniz boşaltıldı.', 'info');
+    showToast(i18n('cart_cleared_title', 'Sepet Temizlendi'), i18n('cart_cleared_msg', 'Sepetiniz boşaltıldı.'), 'info');
 }
 
 function updateCartBadge() {
@@ -500,7 +513,7 @@ function renderCartItems() {
         container.innerHTML = `
             <div class="text-center py-5 text-muted">
                 <i class="bi bi-cart-x fs-1 d-block mb-3 opacity-50"></i>
-                <p class="mb-0">Sepetinizde ürün bulunmamaktadır.</p>
+                <p class="mb-0">${i18n('cart_empty', 'Sepetinizde ürün bulunmamaktadır.')}</p>
             </div>
         `;
         summary.style.display = 'none';
@@ -550,7 +563,7 @@ async function processCartCheckout() {
     const btn = document.getElementById('btnCartCheckout');
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>İşleniyor...';
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>${i18n('processing_order', 'İşleniyor...')}`;
     }
 
     let results = [];
@@ -568,7 +581,7 @@ async function processCartCheckout() {
             results.push({ name: item.name, success: res.success, message: res.message });
             if (res.success) saveOrderToHistory(item.name, item.quantity, res.message);
         } catch(e) {
-            results.push({ name: item.name, success: false, message: 'Bağlantı hatası' });
+            results.push({ name: item.name, success: false, message: i18n('connection_error') });
         }
 
         // Small delay between batch order requests
@@ -577,7 +590,7 @@ async function processCartCheckout() {
 
     if (btn) {
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-shield-check me-1"></i> Siparişi Tamamla';
+        btn.innerHTML = `<i class="bi bi-shield-check me-1"></i> ${i18n('checkout', 'Siparişi Tamamla')}`;
     }
 
     clearCart();
@@ -615,7 +628,7 @@ async function processCartCheckout() {
 function placeOrder(btn, productId) {
     const product = loadedProductsList.find(p => p.id == productId);
     if (product && product.stock == 0) {
-        showToast('Stok Uyarısı', 'Stoku tükenmiş ürünler satın alınamaz.', 'danger');
+        showToast(i18n('stock_warn_title', 'Stok Uyarısı'), i18n('stock_warn_msg_buy', 'Stoku tükenmiş ürünler satın alınamaz.'), 'danger');
         return;
     }
 
@@ -643,7 +656,7 @@ function placeOrder(btn, productId) {
         .then(res => res.json())
         .then(res => {
             const modalBody = document.getElementById('orderModalBody');
-            const prodName = product ? product.name : 'Ürün';
+            const prodName = product ? product.name : i18n('product_fallback_name');
 
             if (modalBody) {
                 if (res.success) {
@@ -652,7 +665,7 @@ function placeOrder(btn, productId) {
                         <div class="alert alert-success glass-card p-3 mb-0">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <i class="bi bi-check-circle-fill text-success fs-4"></i>
-                                <h6 class="mb-0 fw-bold">Sipariş Başarıyla Oluşturuldu!</h6>
+                                <h6 class="mb-0 fw-bold">${i18n('order_success_title', 'Sipariş Başarıyla Oluşturuldu!')}</h6>
                             </div>
                             <p class="mb-0 small">${res.message}</p>
                         </div>
@@ -662,7 +675,7 @@ function placeOrder(btn, productId) {
                         <div class="alert alert-danger glass-card p-3 mb-0">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <i class="bi bi-x-circle-fill text-danger fs-4"></i>
-                                <h6 class="mb-0 fw-bold">Sipariş Gönderilemedi</h6>
+                                <h6 class="mb-0 fw-bold">${i18n('order_failed_title', 'Sipariş Gönderilemedi')}</h6>
                             </div>
                             <p class="mb-0 small">${res.message}</p>
                         </div>
@@ -676,12 +689,12 @@ function placeOrder(btn, productId) {
             }
         })
         .catch(() => {
-            showToast('Hata', 'Sipariş gönderilirken hata oluştu.', 'danger');
+            showToast(i18n('order_failed_title'), i18n('order_connection_error'), 'danger');
         })
         .finally(() => {
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-lightning-charge-fill me-1"></i> Hemen Al';
+                btn.innerHTML = `<i class="bi bi-lightning-charge-fill me-1"></i> ${i18n('buy', 'Hemen Al')}`;
             }
         });
 }
@@ -707,7 +720,7 @@ function saveOrderToHistory(productName, quantity, message) {
 
     history.unshift({
         id: Date.now(),
-        date: new Date().toLocaleString('tr-TR'),
+        date: new Date().toLocaleString(i18n('lang', 'tr') === 'en' ? 'en-US' : 'tr-TR'),
         name: productName,
         quantity: quantity,
         message: message,
@@ -727,29 +740,29 @@ function saveOrderToHistory(productName, quantity, message) {
 function formatOrderStatusBadge(status, description, extraInfo = '') {
     const code = String(status);
     let badgeClass = 'bg-success bg-opacity-25 text-success';
-    let label = description || 'Tamamlandı';
+    let label = description || i18n('status_completed', 'Tamamlandı');
 
     switch (code) {
         case '1':
             badgeClass = 'bg-info bg-opacity-25 text-info';
-            label = description || 'İşleme Alınıyor';
+            label = description || i18n('status_processing', 'İşleme Alınıyor');
             break;
         case '2':
             badgeClass = 'bg-success bg-opacity-25 text-success';
-            label = description || 'Tamamlandı';
+            label = description || i18n('status_completed', 'Tamamlandı');
             break;
         case '3':
             badgeClass = 'bg-danger bg-opacity-25 text-danger';
-            label = description || 'İptal Edildi';
+            label = description || i18n('status_cancelled', 'İptal Edildi');
             if (extraInfo) label += ` - ${extraInfo}`;
             break;
         case '99':
             badgeClass = 'bg-warning bg-opacity-25 text-warning';
-            label = description || 'Teslimat Aşamasında';
+            label = description || i18n('status_in_delivery', 'Teslimat Aşamasında');
             break;
         case '199':
             badgeClass = 'bg-warning bg-opacity-25 text-warning';
-            label = description || 'Ön Sipariş Teslimat Aşamasında';
+            label = description || i18n('status_preorder_delivery', 'Ön Sipariş Teslimat Aşamasında');
             break;
     }
 
@@ -770,7 +783,7 @@ function renderOrderHistory() {
         container.innerHTML = `
             <div class="text-center py-5 text-muted">
                 <i class="bi bi-clock-history fs-1 d-block mb-2 opacity-50"></i>
-                <p class="mb-0">Henüz verilmiş bir siparişiniz yok.</p>
+                <p class="mb-0">${i18n('no_orders_yet', 'Henüz verilmiş bir siparişiniz yok.')}</p>
             </div>
         `;
         return;
@@ -778,7 +791,7 @@ function renderOrderHistory() {
 
     let html = '<div class="d-flex flex-column gap-3">';
     history.forEach(item => {
-        const badge = formatOrderStatusBadge(item.status || '2', item.statusDesc || 'Tamamlandı', item.extraInfo || '');
+        const badge = formatOrderStatusBadge(item.status || '2', item.statusDesc || i18n('status_completed', 'Tamamlandı'), item.extraInfo || '');
         html += `
             <div class="glass-card p-3 border-start border-4 border-primary">
                 <div class="d-flex justify-content-between align-items-start mb-2">
@@ -792,7 +805,7 @@ function renderOrderHistory() {
                     <div class="p-2 rounded-3 bg-body-tertiary d-flex justify-content-between align-items-center mt-2 border border-secondary border-opacity-25">
                         <code class="text-primary fs-6">${item.epinCode}</code>
                         <button class="btn btn-sm btn-outline-glass py-1 px-3 rounded-pill" onclick="copyToClipboard('${item.epinCode}')">
-                            <i class="bi bi-clipboard me-1"></i> Kopyala
+                            <i class="bi bi-clipboard me-1"></i> ${i18n('copy', 'Kopyala')}
                         </button>
                     </div>
                 ` : `<p class="mb-0 text-muted small">${item.message}</p>`}

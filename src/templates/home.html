@@ -36,7 +36,7 @@
             <i class="bi bi-shop fs-1"></i>
         </div>
         <h3 class="fw-bold brand-title mb-2">{$LANG.select_game_prompt}</h3>
-        <p class="text-muted max-w-md mx-auto mb-0">Lütfen yukarıdaki menüden bir oyun seçerek mevcut ürünleri ve stok durumunu görüntüleyin.</p>
+        <p class="text-muted max-w-md mx-auto mb-0">{$LANG.welcome_desc}</p>
     </div>
 </div>
 
@@ -52,10 +52,10 @@
         </div>
         
         <div class="btn-group btn-group-sm" role="group">
-            <button type="button" class="btn btn-outline-glass active" id="btnGridView" onclick="toggleProductLayout('grid')" title="Kart Görünümü">
+            <button type="button" class="btn btn-outline-glass active" id="btnGridView" onclick="toggleProductLayout('grid')" title="{$LANG.grid_view}">
                 <i class="bi bi-grid-3x3-gap-fill"></i>
             </button>
-            <button type="button" class="btn btn-outline-glass" id="btnTableView" onclick="toggleProductLayout('table')" title="Tablo Görünümü">
+            <button type="button" class="btn btn-outline-glass" id="btnTableView" onclick="toggleProductLayout('table')" title="{$LANG.table_view}">
                 <i class="bi bi-list-ul"></i>
             </button>
         </div>
@@ -75,7 +75,7 @@
                     <th>{$LANG.stock}</th>
                     <th>{$LANG.price}</th>
                     <th style="width: 140px;">{$LANG.quantity}</th>
-                    <th class="text-end" style="width: 220px;">İşlem</th>
+                    <th class="text-end" style="width: 220px;">{$LANG.action}</th>
                 </tr>
             </thead>
             <tbody>
@@ -91,7 +91,7 @@
     <div class="modal-content glass-card">
       <div class="modal-header border-bottom border-secondary border-opacity-25 py-3">
         <h5 class="modal-title brand-title d-flex align-items-center gap-2" id="orderModalLabel">
-            <i class="bi bi-receipt-cutoff text-primary"></i> Sipariş Sonucu
+            <i class="bi bi-receipt-cutoff text-primary"></i> {$LANG.order_result}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -99,7 +99,7 @@
         <!-- Result message injected here -->
       </div>
       <div class="modal-footer border-top border-secondary border-opacity-25 py-2">
-        <button type="button" class="btn btn-outline-glass btn-sm rounded-pill px-4" data-bs-dismiss="modal">Kapat</button>
+        <button type="button" class="btn btn-outline-glass btn-sm rounded-pill px-4" data-bs-dismiss="modal">{$LANG.close}</button>
       </div>
     </div>
   </div>
