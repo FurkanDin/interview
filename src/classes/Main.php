@@ -44,7 +44,25 @@ class Main
             $client = new TurkpinApiClient();
             try {
                 $response = $client->getProducts($gameId);
-                echo json_encode(['success' => true, 'data' => $response]);
+                
+                $products = [];
+                if (isset($response['params']['urunListesi']['urun'])) {
+                    $urunData = $response['params']['urunListesi']['urun'];
+                    if (isset($urunData['id'])) {
+                        $products = [$urunData];
+                    } else {
+                        $products = $urunData;
+                    }
+                } else if (isset($response['data'])) {
+                    $products = $response['data'];
+                }
+
+                $errorCode = $response['params']['error'] ?? ($response['params']['HATA_NO'] ?? null);
+                if ($errorCode && $errorCode !== '000') {
+                    echo json_encode(['success' => false, 'message' => $response['params']['error_desc'] ?? ($response['params']['HATA_ACIKLAMA'] ?? 'API Hatası')]);
+                } else {
+                    echo json_encode(['success' => true, 'data' => $products]);
+                }
             } catch (\Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -71,10 +89,12 @@ class Main
             $client = new TurkpinApiClient();
             try {
                 $response = $client->createOrder($productId, $quantity);
-                if (isset($response['code']) && $response['code'] === '000') {
+                $errorCode = $response['params']['error'] ?? ($response['params']['HATA_NO'] ?? ($response['code'] ?? null));
+                
+                if ($errorCode === '000') {
                     echo json_encode(['success' => true, 'message' => 'Sipariş başarıyla oluşturuldu.']);
                 } else {
-                    $errorMsg = $response['message'] ?? 'Sipariş oluşturulamadı.';
+                    $errorMsg = $response['params']['error_desc'] ?? ($response['params']['HATA_ACIKLAMA'] ?? ($response['message'] ?? 'Sipariş oluşturulamadı.'));
                     echo json_encode(['success' => false, 'message' => $errorMsg]);
                 }
             } catch (\Exception $e) {

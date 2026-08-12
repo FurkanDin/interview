@@ -15,8 +15,8 @@ class Home
             
             // Assume response is array of games or has a 'data' key
             // Check typical XML to Array converted structure for Turkpin
-            if (isset($response['params']['game'])) {
-                $gameData = $response['params']['game'];
+            if (isset($response['params']['oyunListesi']['oyun'])) {
+                $gameData = $response['params']['oyunListesi']['oyun'];
                 if (isset($gameData['id'])) {
                     $games[$gameData['id']] = $gameData['name'];
                 } else {
