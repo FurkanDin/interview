@@ -2,48 +2,13 @@
 <div class="row g-4 mb-4 align-items-center">
     <div class="col-lg-6">
         <div class="glass-card p-4">
-            <label class="form-label text-muted small fw-semibold text-uppercase tracking-wider mb-2">
+            <label for="games" class="form-label text-muted small fw-semibold text-uppercase tracking-wider mb-2">
                 <i class="bi bi-controller text-primary me-1"></i> {$LANG.select_game_prompt}
             </label>
-            
-            <!-- Modern Custom Bootstrap Dropdown -->
-            <div class="dropdown">
-                <button class="btn btn-outline-glass w-100 text-start d-flex align-items-center justify-content-between p-3 rounded-3 shadow-sm dropdown-toggle" type="button" id="gameDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                    <span id="selectedGameText" class="d-flex align-items-center gap-2 fs-6">
-                        <i class="bi bi-controller text-primary fs-5"></i> {$LANG.select_game_prompt}
-                    </span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-glass w-100 shadow-lg p-2 border border-secondary border-opacity-25 mt-1" style="max-height: 340px; overflow-y: auto;" id="gameDropdownList">
-                    <li class="px-2 pb-2">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                            <input type="text" class="form-control form-control-glass border-start-0 ps-0" id="dropdownGameSearch" placeholder="Oyun ara..." onkeyup="filterGameDropdownItems()">
-                        </div>
-                    </li>
-                    <li><hr class="dropdown-divider border-secondary border-opacity-25 my-1"></li>
-                    <li>
-                        <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2 game-dropdown-item" href="#" onclick="selectGameItem('0', '{$LANG.select_game_prompt}', event)">
-                            <i class="bi bi-slash-circle text-muted"></i> <em>{$LANG.select_game_prompt}</em>
-                        </a>
-                    </li>
-                    {foreach $games as $game_id => $game_name}
-                        <li>
-                            <a class="dropdown-item rounded-2 py-2 d-flex align-items-center justify-content-between game-dropdown-item" href="#" onclick="selectGameItem('{$game_id}', '{$game_name|escape:'quotes'}', event)">
-                                <span class="d-flex align-items-center gap-2">
-                                    <i class="bi bi-controller text-primary"></i> {$game_name}
-                                </span>
-                                <i class="bi bi-chevron-right small text-muted opacity-50"></i>
-                            </a>
-                        </li>
-                    {/foreach}
-                </ul>
-            </div>
-            
-            <!-- Hidden native select for JS engine compatibility -->
-            <select class="d-none" id="games">
+            <select class="form-select form-select-lg form-select-glass shadow-sm fw-bold" id="games" onchange="fetchProducts(this.value)">
                 <option value="0">{$LANG.select_game_prompt}</option>
                 {foreach $games as $game_id => $game_name}
-                    <option value="{$game_id}">{$game_name}</option>
+                    <option value="{$game_id}">🎮 {$game_name}</option>
                 {/foreach}
             </select>
         </div>
