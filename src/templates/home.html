@@ -1,9 +1,9 @@
 <!-- Game Selection & Filter Header -->
-<div class="row g-4 mb-5 align-items-center">
+<div class="row g-4 mb-4 align-items-center">
     <div class="col-lg-6">
         <div class="glass-card p-4">
             <label for="games" class="form-label text-muted small fw-semibold text-uppercase tracking-wider mb-2">
-                <i class="bi bi-controller text-indigo-400 me-1"></i> {$LANG.select_game_prompt}
+                <i class="bi bi-controller text-primary me-1"></i> {$LANG.select_game_prompt}
             </label>
             <select class="form-select form-select-lg form-select-glass shadow-sm" id="games" onchange="fetchProducts(this.value)">
                 <option value="0">{$LANG.select_game_prompt}</option>
@@ -20,7 +20,7 @@
                 <i class="bi bi-search me-1"></i> {$LANG.search_placeholder}
             </label>
             <div class="input-group">
-                <span class="input-group-text bg-transparent border-end-0 text-muted" style="border-color: rgba(255, 255, 255, 0.12) !important;">
+                <span class="input-group-text bg-transparent border-end-0 text-muted" style="border-color: var(--card-border) !important;">
                     <i class="bi bi-search"></i>
                 </span>
                 <input type="text" id="productSearchInput" class="form-control form-control-glass border-start-0 ps-0" placeholder="{$LANG.search_placeholder}" onkeyup="filterProducts()">
@@ -32,7 +32,7 @@
 <!-- Empty State / Welcome Container -->
 <div id="welcomeState" class="text-center py-5 glass-card my-4">
     <div class="p-4">
-        <div class="d-inline-flex p-3 rounded-circle bg-indigo-500 bg-opacity-10 text-indigo-400 mb-3" style="background: rgba(99, 102, 241, 0.15);">
+        <div class="d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 text-primary mb-3">
             <i class="bi bi-shop fs-1"></i>
         </div>
         <h3 class="fw-bold brand-title mb-2">{$LANG.select_game_prompt}</h3>
@@ -46,9 +46,9 @@
     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary border-opacity-25">
         <div>
             <h4 class="brand-title mb-1 d-flex align-items-center gap-2">
-                <i class="bi bi-grid-fill text-indigo-400"></i> <span id="selectedGameTitle">{$LANG.all_games}</span>
+                <i class="bi bi-grid-fill text-primary"></i> <span id="selectedGameTitle">{$LANG.all_games}</span>
             </h4>
-            <span class="badge bg-secondary bg-opacity-25 text-light fw-normal rounded-pill px-3 py-1" id="productCountBadge">0 {$LANG.items_count}</span>
+            <span class="badge bg-secondary bg-opacity-25 text-body fw-normal rounded-pill px-3 py-1" id="productCountBadge">0 {$LANG.items_count}</span>
         </div>
         
         <div class="btn-group btn-group-sm" role="group">
@@ -68,7 +68,7 @@
 
     <!-- Product Table View (Hidden by default) -->
     <div class="table-responsive glass-card p-3 mb-5" id="products-table-wrapper" style="display: none;">
-        <table class="table table-dark table-hover align-middle mb-0" id="products-table">
+        <table class="table align-middle mb-0" id="products-table">
             <thead>
                 <tr class="text-muted border-secondary">
                     <th>{$LANG.prd_name}</th>
@@ -88,12 +88,12 @@
 <!-- Order Result Modal -->
 <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content glass-card text-white">
+    <div class="modal-content glass-card">
       <div class="modal-header border-bottom border-secondary border-opacity-25 py-3">
         <h5 class="modal-title brand-title d-flex align-items-center gap-2" id="orderModalLabel">
-            <i class="bi bi-receipt-cutoff text-indigo-400"></i> Sipariş Sonucu
+            <i class="bi bi-receipt-cutoff text-primary"></i> Sipariş Sonucu
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-4" id="orderModalBody">
         <!-- Result message injected here -->
@@ -138,8 +138,8 @@
         filterContainer.style.display = 'block';
         container.style.display = 'block';
         
-        grid.innerHTML = '<div class="col-12 text-center py-5 text-muted"><div class="spinner-border text-indigo-400" role="status"></div><p class="mt-2">Ürünler Yükleniyor...</p></div>';
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-indigo-400" role="status"></div> Yükleniyor...</td></tr>';
+        grid.innerHTML = '<div class="col-12 text-center py-5 text-muted"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Ürünler Yükleniyor...</p></div>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Yükleniyor...</td></tr>';
 
         fetch(`/api/products/${gameId}`)
             .then(res => res.json())
@@ -181,7 +181,6 @@
         products.forEach(product => {
             const isOutOfStock = product.stock == 0;
             const isPreOrder = product.pre_order === "true" || product.pre_order === true;
-            const isBarem = product.min_barem !== undefined;
 
             // Badges
             let stockBadge = `<span class="badge bg-success bg-opacity-25 text-success rounded-pill"><i class="bi bi-check-circle me-1"></i>Stok: ${product.stock}</span>`;
@@ -197,17 +196,17 @@
             const cardCol = document.createElement('div');
             cardCol.className = 'col-md-6 col-lg-4';
             cardCol.innerHTML = `
-                <div class="glass-card h-100 p-4 d-flex flex-column justify-content-between position-relative">
+                <div class="glass-card h-100 p-4 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="p-2.5 rounded-3 bg-indigo-500 bg-opacity-10 text-indigo-400" style="background: rgba(99, 102, 241, 0.15);">
+                            <div class="p-2.5 rounded-3 bg-primary bg-opacity-10 text-primary">
                                 <i class="bi bi-ticket-perforated fs-4"></i>
                             </div>
                             <div>${stockBadge}</div>
                         </div>
 
-                        <h5 class="fw-bold brand-title mb-2 text-white">${product.name || 'Ürün'}</h5>
-                        <div class="fs-3 fw-extrabold text-success mb-3">₺${formattedPrice}</div>
+                        <h5 class="fw-bold brand-title mb-2">${product.name || 'Ürün'}</h5>
+                        <div class="fs-3 fw-bold text-success mb-3">₺${formattedPrice}</div>
                     </div>
 
                     <div>
@@ -215,7 +214,7 @@
                             <label class="form-label text-muted small mb-0 me-1">Miktar:</label>
                             <div class="input-group input-group-sm form-control-glass p-0 align-items-center" style="max-width: 130px;">
                                 <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', -1)"><i class="bi bi-dash"></i></button>
-                                <input type="number" class="form-control bg-transparent border-0 text-center text-white fw-bold p-0" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_${product.id}">
+                                <input type="number" class="form-control bg-transparent border-0 text-center fw-bold p-0" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_${product.id}">
                                 <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', 1)"><i class="bi bi-plus"></i></button>
                             </div>
                         </div>
@@ -237,7 +236,7 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>
-                    <div class="fw-bold text-white">${product.name || 'Ürün'}</div>
+                    <div class="fw-bold">${product.name || 'Ürün'}</div>
                     <small class="text-muted">ID: #${product.id}</small>
                 </td>
                 <td>${stockBadge}</td>
@@ -245,7 +244,7 @@
                 <td>
                     <div class="input-group input-group-sm form-control-glass p-0 align-items-center" style="max-width: 120px;">
                         <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', -1)"><i class="bi bi-dash"></i></button>
-                        <input type="number" class="form-control bg-transparent border-0 text-center text-white fw-bold p-0" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_tbl_${product.id}" onchange="syncQty('${product.id}', this.value)">
+                        <input type="number" class="form-control bg-transparent border-0 text-center fw-bold p-0" value="1" min="${product.min_order || 1}" max="${product.max_order || 99}" id="quantity_tbl_${product.id}" onchange="syncQty('${product.id}', this.value)">
                         <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', 1)"><i class="bi bi-plus"></i></button>
                     </div>
                 </td>
@@ -304,11 +303,7 @@
     // Shopping Cart System (CartManager)
     // -------------------------------------------------------------
     function getCart() {
-        try {
-            return JSON.parse(localStorage.getItem('turkpin_cart_v1')) || [];
-        } catch(e) {
-            return [];
-        }
+        try { return JSON.parse(localStorage.getItem('turkpin_cart_v1')) || []; } catch(e) { return []; }
     }
 
     function saveCart(cart) {
@@ -348,9 +343,7 @@
         const index = cart.findIndex(item => item.id == productId);
         if (index > -1) {
             cart[index].quantity += delta;
-            if (cart[index].quantity <= 0) {
-                cart.splice(index, 1);
-            }
+            if (cart[index].quantity <= 0) cart.splice(index, 1);
             saveCart(cart);
         }
     }
@@ -407,13 +400,13 @@
             html += `
                 <div class="glass-card p-3 d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="fw-bold text-white mb-1">${item.name}</h6>
+                        <h6 class="fw-bold mb-1">${item.name}</h6>
                         <div class="text-success small font-mono">₺${item.price.toFixed(4)} x ${item.quantity} = <strong>₺${itemTotal.toFixed(2)}</strong></div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <div class="input-group input-group-sm form-control-glass p-0 align-items-center" style="max-width: 90px;">
                             <button class="btn btn-sm text-muted px-2 border-0" onclick="updateCartItemQty('${item.id}', -1)"><i class="bi bi-dash"></i></button>
-                            <span class="px-1 fw-bold text-white small">${item.quantity}</span>
+                            <span class="px-1 fw-bold small">${item.quantity}</span>
                             <button class="btn btn-sm text-muted px-2 border-0" onclick="updateCartItemQty('${item.id}', 1)"><i class="bi bi-plus"></i></button>
                         </div>
                         <button class="btn btn-sm btn-outline-danger border-0" onclick="removeFromCart('${item.id}')"><i class="bi bi-trash"></i></button>
@@ -444,9 +437,7 @@
             try {
                 const res = await fetch('/api/order', { method: 'POST', body: formData }).then(r => r.json());
                 results.push({ name: item.name, success: res.success, message: res.message });
-                if (res.success) {
-                    saveOrderToHistory(item.name, item.quantity, res.message);
-                }
+                if (res.success) saveOrderToHistory(item.name, item.quantity, res.message);
             } catch(e) {
                 results.push({ name: item.name, success: false, message: 'Bağlantı hatası' });
             }
@@ -455,7 +446,6 @@
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-shield-check me-1"></i> Siparişi Tamamla';
 
-        // Show checkout summary in modal
         clearCart();
         const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('cartDrawer'));
         if (offcanvas) offcanvas.hide();
@@ -499,7 +489,7 @@
                 if (res.success) {
                     saveOrderToHistory(prodName, quantity, res.message);
                     modalBody.innerHTML = `
-                        <div class="alert alert-success glass-card border-success text-white p-3 mb-0">
+                        <div class="alert alert-success glass-card p-3 mb-0">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <i class="bi bi-check-circle-fill text-success fs-4"></i>
                                 <h6 class="mb-0 fw-bold">Sipariş Başarıyla Oluşturuldu!</h6>
@@ -509,7 +499,7 @@
                     `;
                 } else {
                     modalBody.innerHTML = `
-                        <div class="alert alert-danger glass-card border-danger text-white p-3 mb-0">
+                        <div class="alert alert-danger glass-card p-3 mb-0">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <i class="bi bi-x-circle-fill text-danger fs-4"></i>
                                 <h6 class="mb-0 fw-bold">Sipariş Gönderilemedi</h6>
@@ -537,7 +527,6 @@
         let history = [];
         try { history = JSON.parse(localStorage.getItem('turkpin_history_v1')) || []; } catch(e){}
         
-        // Extract E-PIN code if present
         let epinCode = null;
         if (message.includes('E-Pin Kodu:')) {
             epinCode = message.split('E-Pin Kodu:')[1].trim();
@@ -573,17 +562,17 @@
         let html = '<div class="d-flex flex-column gap-3">';
         history.forEach(item => {
             html += `
-                <div class="glass-card p-3 border-start border-4 border-indigo-500">
+                <div class="glass-card p-3 border-start border-4 border-primary">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div>
-                            <h6 class="fw-bold text-white mb-0">${item.name} (x${item.quantity})</h6>
+                            <h6 class="fw-bold mb-0">${item.name} (x${item.quantity})</h6>
                             <small class="text-muted">${item.date}</small>
                         </div>
                         <span class="badge bg-success bg-opacity-25 text-success rounded-pill">Tamamlandı</span>
                     </div>
                     ${item.epinCode ? `
-                        <div class="p-2 rounded-3 bg-black bg-opacity-40 d-flex justify-content-between align-items-center mt-2 border border-secondary border-opacity-25">
-                            <code class="text-info fs-6">${item.epinCode}</code>
+                        <div class="p-2 rounded-3 bg-body-tertiary d-flex justify-content-between align-items-center mt-2 border border-secondary border-opacity-25">
+                            <code class="text-primary fs-6">${item.epinCode}</code>
                             <button class="btn btn-sm btn-outline-glass py-1 px-3 rounded-pill" onclick="copyToClipboard('${item.epinCode}')">
                                 <i class="bi bi-clipboard me-1"></i> Kopyala
                             </button>
@@ -608,17 +597,17 @@
     function showToast(title, message, type = 'info') {
         const container = document.getElementById('toastContainer');
         const toastId = 'toast_' + Date.now();
-        const iconClass = type === 'success' ? 'bi-check-circle-fill text-success' : (type === 'danger' ? 'bi-exclamation-octagon-fill text-danger' : 'bi-info-circle-fill text-info');
+        const iconClass = type === 'success' ? 'bi-check-circle-fill text-success' : (type === 'danger' ? 'bi-exclamation-octagon-fill text-danger' : 'bi-info-circle-fill text-primary');
         
         const toastHTML = `
             <div id="${toastId}" class="toast toast-glass align-items-center border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex p-3">
                     <div class="me-3 fs-4"><i class="bi ${iconClass}"></i></div>
                     <div class="toast-body p-0 flex-grow-1">
-                        <strong class="d-block text-white mb-1">${title}</strong>
+                        <strong class="d-block mb-1">${title}</strong>
                         <span class="text-muted small">${message}</span>
                     </div>
-                    <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
+                    <button type="button" class="btn-close ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
             </div>
         `;
