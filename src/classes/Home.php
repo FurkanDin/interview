@@ -26,6 +26,10 @@ class Home
                     }
                 }
             }
+            
+            if (empty($games)) {
+                $smarty->assign('error', 'Oyun listesi boş döndü veya yapı okunamadı. Ham Yanıt: ' . print_r($response, true));
+            }
         } catch (\Exception $e) {
             $smarty->assign('error', 'Oyun listesi alınırken bir hata oluştu: ' . $e->getMessage());
         }

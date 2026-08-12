@@ -1,4 +1,11 @@
 <div class="row mb-4">
+    <div class="col-12">
+        {if isset($error)}
+            <div class="alert alert-danger">
+                <strong>Hata:</strong> {$error}
+            </div>
+        {/if}
+    </div>
     <div class="col-auto">
         <select class="form-select" id="games" onchange="fetchProducts(this.value)">
             <option value="0">{$LANG.all_games}</option>
