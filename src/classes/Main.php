@@ -41,13 +41,13 @@ class Main
         // API routes for frontend JS fetch calls
         $this->router->get('/api/products/(\d+)', function ($gameId) {
             header('Content-Type: application/json');
-            $client = new TurkpinApiClient();
+            $client = new \Turkpin\InterviewTest\TurkpinApiClient();
             try {
                 $response = $client->getProducts($gameId);
                 
                 $products = [];
-                if (isset($response['params']['urunListesi']['urun'])) {
-                    $urunData = $response['params']['urunListesi']['urun'];
+                if (isset($response['params']['epinUrunListesi']['urun'])) {
+                    $urunData = $response['params']['epinUrunListesi']['urun'];
                     if (isset($urunData['id'])) {
                         $products = [$urunData];
                     } else {
@@ -86,7 +86,7 @@ class Main
                 return;
             }
 
-            $client = new TurkpinApiClient();
+            $client = new \Turkpin\InterviewTest\TurkpinApiClient();
             try {
                 $response = $client->createOrder($productId, $quantity);
                 $errorCode = $response['params']['error'] ?? ($response['params']['HATA_NO'] ?? ($response['code'] ?? null));
