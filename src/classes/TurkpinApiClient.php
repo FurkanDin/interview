@@ -68,14 +68,14 @@ class TurkpinApiClient
         return $this->request('epinUrunleri', ['oyunKodu' => $gameId]);
     }
 
-    public function createOrder($productId, $quantity, $gameId = null)
+    public function createOrder($productId, $quantity, $gameId = null, $extraParams = [])
     {
-        $params = [
+        $params = array_merge([
             'oyunKodu' => $gameId,
             'urunKodu' => $productId,
             'adet' => $quantity
-        ];
-        
+        ], is_array($extraParams) ? $extraParams : []);
+
         return $this->request('epinSiparisYarat', $params);
     }
 

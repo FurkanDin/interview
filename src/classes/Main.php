@@ -69,12 +69,117 @@ class Main
             exit;
         });
 
+        $this->router->get('/api/order-status/(\d+)', function ($orderNo) {
+            header('Content-Type: application/json');
+            $client = new \Turkpin\InterviewTest\TurkpinApiClient();
+            try {
+                $response = $client->getOrderStatus($orderNo);
+                $params = $response['params'] ?? [];
+                
+                $durumKodu = $params['DURUM_KODU'] ?? null;
+                $siparisDurumu = $params['SIPARIS_DURUMU'] ?? null;
+                $aciklama = $params['SIPARIS_DURUMU_ACIKLAMA'] ?? 'Sipariş durumu sorgulandı.';
+                $ekstra = $params['EKSTRA'] ?? ($params['EXTRA'] ?? '');
+
+                echo json_encode([
+                    'success' => true,
+                    'durum_kodu' => $durumKodu,
+                    'siparis_durumu' => $siparisDurumu,
+                    'aciklama' => $aciklama,
+                    'ekstra' => $ekstra,
+                    'raw' => $params
+                ]);
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+            exit;
+        });
+        $this->router->get('/api/order-list', function () {
+            header('Content-Type: application/json');
+            $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime('-7 days'));
+            $endDate = $_GET['end_date'] ?? date('Y-m-d');
+
+            // Date validation (max 30 days)
+            $diffDays = (strtotime($endDate) - strtotime($startDate)) / 86400;
+            if ($diffDays < 0) {
+                echo json_encode(['success' => false, 'message' => 'Başlangıç tarihi bitiş tarihinden büyük olamaz. (Hata 30)']);
+                exit;
+            }
+            if ($diffDays > 30) {
+                echo json_encode(['success' => false, 'message' => 'Tarih aralığı en fazla 30 gün olabilir. (Hata 31)']);
+                exit;
+            }
+
+            $client = new \Turkpin\InterviewTest\TurkpinApiClient();
+            try {
+                $response = $client->getOrderList($startDate, $endDate);
+                
+                $hataNo = $response['params']['HATA_NO'] ?? null;
+                if ($hataNo && $hataNo !== '000') {
+                    echo json_encode([
+                        'success' => false,
+                        'error_code' => $hataNo,
+                        'message' => $response['params']['HATA_ACIKLAMA'] ?? 'Sipariş listesi alınamadı.'
+                    ]);
+                    exit;
+                }
+
+                $orders = [];
+                if (isset($response['params']['SIPARISLER']['SIPARIS'])) {
+                    $siparisData = $response['params']['SIPARISLER']['SIPARIS'];
+                    $orders = isset($siparisData['SIPARIS_NO']) ? [$siparisData] : $siparisData;
+                }
+
+                echo json_encode([
+                    'success' => true,
+                    'data' => $orders,
+                    'start_date' => $startDate,
+                    'end_date' => $endDate
+                ]);
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+            exit;
+        });
+
+        $this->router->get('/api/balance', function () {
+            header('Content-Type: application/json');
+            $client = new \Turkpin\InterviewTest\TurkpinApiClient();
+            try {
+                $response = $client->getBalance();
+                $params = $response['params'] ?? [];
+                
+                $bakiye = $params['bakiye'] ?? ($params['balance'] ?? null);
+                $errorCode = $params['HATA_NO'] ?? null;
+
+                if ($errorCode && $errorCode !== '000') {
+                    echo json_encode(['success' => false, 'message' => $params['HATA_ACIKLAMA'] ?? 'Bakiye sorgulanamadı.']);
+                } else {
+                    echo json_encode(['success' => true, 'balance' => $bakiye, 'data' => $params]);
+                }
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+            exit;
+        });
+
         $this->router->post('/api/order', function () {
             header('Content-Type: application/json');
 
             $productId = $_POST['product_id'] ?? null;
             $quantity = $_POST['quantity'] ?? 1;
             $gameId = $_POST['game_id'] ?? null;
+
+            $extraParams = [];
+            if (!empty($_POST['pre_order'])) {
+                $extraParams['pre_order'] = $_POST['pre_order'];
+            }
+            if (!empty($_POST['character'])) {
+                $extraParams['character'] = $_POST['character'];
+            }
+            if (!empty($_POST['barem'])) {
+                $extraParams['barem'] = $_POST['barem'];
+            }
 
             if (!$productId || $quantity < 1) {
                 echo json_encode(['success' => false, 'message' => 'Geçersiz ürün veya miktar.']);
@@ -91,7 +196,7 @@ class Main
 
             $client = new \Turkpin\InterviewTest\TurkpinApiClient();
             try {
-                $response = $client->createOrder($productId, $quantity, $gameId);
+                $response = $client->createOrder($productId, $quantity, $gameId, $extraParams);
                 $errorCode = $response['params']['HATA_NO'] ?? ($response['params']['error'] ?? ($response['code'] ?? null));
                 
                 if ($errorCode === '000') {

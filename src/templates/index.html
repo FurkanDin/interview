@@ -195,14 +195,17 @@
                         <span id="cartCountBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill badge-cart" style="display: none;">0</span>
                     </button>
 
-                    <!-- Language Switcher -->
-                    <form method="get" action="" class="m-0">
-                        <select name="lang" id="lang" class="form-select form-select-sm form-select-glass rounded-pill px-3" onchange="this.form.submit()">
-                            {foreach $langs as $key => $value}
-                                <option value="{$key}" {if $key == $LANG.lang}selected{/if}>{$value}</option>
-                            {/foreach}
-                        </select>
-                    </form>
+                    <!-- Flagged Language Switcher -->
+                    <div class="btn-group p-1 rounded-pill glass-card border border-secondary border-opacity-25" role="group" aria-label="Language selector">
+                        <a href="?lang=tr" class="btn btn-sm rounded-pill px-2.5 py-1 text-decoration-none d-flex align-items-center gap-1 {if $LANG.lang == 'tr'}btn-gradient text-white shadow-sm fw-bold{else}text-body opacity-75 fw-normal{/if}" title="Türkçe">
+                            <span style="font-size: 1rem;">🇹🇷</span>
+                            <span class="small">TR</span>
+                        </a>
+                        <a href="?lang=en" class="btn btn-sm rounded-pill px-2.5 py-1 text-decoration-none d-flex align-items-center gap-1 {if $LANG.lang == 'en'}btn-gradient text-white shadow-sm fw-bold{else}text-body opacity-75 fw-normal{/if}" title="English">
+                            <span style="font-size: 1rem;">🇬🇧</span>
+                            <span class="small">EN</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </nav>

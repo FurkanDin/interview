@@ -42,6 +42,28 @@ function formatPrice(val) {
 }
 
 /**
+ * Maps Turkpin tax_type ID to official human-readable label
+ * @param {string|number} taxType
+ * @returns {string}
+ */
+function getTaxLabel(taxType) {
+    const type = String(taxType);
+    switch (type) {
+        case '0':
+            return 'KDV %0';
+        case '1':
+        case '3':
+            return 'KDV %20';
+        case '2':
+            return 'Ürün KDV-0 / Hizmet KDV-20';
+        case '5':
+            return 'Komisyon Faturası';
+        default:
+            return `KDV %${type}`;
+    }
+}
+
+/**
  * Shows a toast notification on bottom-right
  * @param {string} title
  * @param {string} message
@@ -88,6 +110,49 @@ function copyToClipboard(text) {
             showToast('Kopyalandı', 'E-Pin kodu panoya kopyalandı!', 'success');
         });
     }
+}
+
+/**
+ * Selects a game item from custom dropdown and triggers product fetch
+ * @param {string|number} gameId
+ * @param {string} gameName
+ * @param {Event} [event]
+ */
+function selectGameItem(gameId, gameName, event) {
+    if (event) event.preventDefault();
+    const btnText = document.getElementById('selectedGameText');
+    const nativeSelect = document.getElementById('games');
+
+    if (btnText) {
+        btnText.innerHTML = gameId == 0 
+            ? `<i class="bi bi-controller text-primary fs-5"></i> Oyun Seçiniz`
+            : `<i class="bi bi-controller text-primary fs-5"></i> ${gameName}`;
+    }
+
+    if (nativeSelect) {
+        nativeSelect.value = gameId;
+    }
+
+    fetchProducts(gameId);
+}
+
+/**
+ * Filters items inside custom game dropdown search box
+ */
+function filterGameDropdownItems() {
+    const input = document.getElementById('dropdownGameSearch');
+    if (!input) return;
+    const filter = input.value.toLowerCase();
+    const items = document.querySelectorAll('#gameDropdownList .game-dropdown-item');
+
+    items.forEach(item => {
+        const text = item.textContent || item.innerText;
+        if (text.toLowerCase().indexOf(filter) > -1) {
+            item.parentElement.style.display = '';
+        } else {
+            item.parentElement.style.display = 'none';
+        }
+    });
 }
 
 // -------------------------------------------------------------
@@ -188,6 +253,9 @@ function renderProducts(products) {
 
         const formattedPrice = formatPrice(product.price);
         const qtyInputAttr = isOutOfStock ? 'disabled' : '';
+        const taxRate = (product.tax_type !== undefined && product.tax_type !== null) ? product.tax_type : '0';
+        const taxLabel = getTaxLabel(taxRate);
+        const taxBadge = `<span class="badge bg-secondary bg-opacity-25 text-body rounded-pill ms-1" title="Vergi Tipi"><i class="bi bi-percent me-1"></i>${taxLabel}</span>`;
 
         // Grid Action Buttons
         const btnHemenAl = isOutOfStock 
@@ -208,7 +276,7 @@ function renderProducts(products) {
                         <div class="p-2.5 rounded-3 bg-primary bg-opacity-10 text-primary">
                             <i class="bi bi-ticket-perforated fs-4"></i>
                         </div>
-                        <div>${stockBadge}</div>
+                        <div class="d-flex align-items-center gap-1">${stockBadge}${taxBadge}</div>
                     </div>
                     <h5 class="fw-bold brand-title mb-2">${product.name || 'Ürün'}</h5>
                     <div class="fs-3 fw-bold text-success mb-3">₺${formattedPrice}</div>
@@ -240,7 +308,10 @@ function renderProducts(products) {
                 <small class="text-muted">ID: #${product.id}</small>
             </td>
             <td>${stockBadge}</td>
-            <td class="fw-bold text-success">₺${formattedPrice}</td>
+            <td>
+                <div class="fw-bold text-success">₺${formattedPrice}</div>
+                <small class="text-muted font-mono" style="font-size: 0.75rem;">${taxLabel}</small>
+            </td>
             <td>
                 <div class="input-group input-group-sm form-control-glass p-0 align-items-center" style="max-width: 120px;">
                     <button class="btn btn-sm text-muted px-2 border-0" onclick="adjustQty('${product.id}', -1)" ${qtyInputAttr}><i class="bi bi-dash"></i></button>
@@ -359,10 +430,13 @@ function addToCart(productId) {
     if (existingIndex > -1) {
         cart[existingIndex].quantity += qty;
     } else {
+        const isPreOrder = product.pre_order === "true" || product.pre_order === true;
         cart.push({
             id: product.id,
             name: product.name,
             price: parseFloat(product.price || 0),
+            taxType: product.tax_type || '0',
+            isPreOrder: isPreOrder,
             quantity: qty,
             gameId: currentSelectedGameId
         });
@@ -440,10 +514,14 @@ function renderCartItems() {
     cart.forEach(item => {
         const itemTotal = item.price * item.quantity;
         total += itemTotal;
+        const itemTaxLabel = getTaxLabel(item.taxType !== undefined ? item.taxType : '0');
         html += `
             <div class="glass-card p-3 d-flex align-items-center justify-content-between">
                 <div>
-                    <h6 class="fw-bold mb-1">${item.name}</h6>
+                    <div class="d-flex align-items-center gap-1 mb-1">
+                        <h6 class="fw-bold mb-0">${item.name}</h6>
+                        <span class="badge bg-secondary bg-opacity-25 text-body rounded-pill" style="font-size: 0.65rem;">${itemTaxLabel}</span>
+                    </div>
                     <div class="text-success small font-mono">₺${formatPrice(item.price)} × ${item.quantity} = <strong>₺${formatPrice(itemTotal)}</strong></div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
@@ -481,6 +559,9 @@ async function processCartCheckout() {
         formData.append('product_id', item.id);
         formData.append('quantity', item.quantity);
         formData.append('game_id', item.gameId || currentSelectedGameId);
+        if (item.isPreOrder) {
+            formData.append('pre_order', 'true');
+        }
 
         try {
             const res = await fetch('/api/order', { method: 'POST', body: formData }).then(r => r.json());
@@ -553,6 +634,10 @@ function placeOrder(btn, productId) {
     formData.append('product_id', productId);
     formData.append('quantity', quantity);
     formData.append('game_id', selectedGame);
+
+    if (product && (product.pre_order === "true" || product.pre_order === true)) {
+        formData.append('pre_order', 'true');
+    }
 
     fetch('/api/order', { method: 'POST', body: formData })
         .then(res => res.json())
@@ -633,6 +718,45 @@ function saveOrderToHistory(productName, quantity, message) {
 }
 
 /**
+ * Maps Turkpin SIPARIS_DURUMU code & EKSTRA to human readable HTML badge
+ * @param {string|number} status
+ * @param {string} description
+ * @param {string} extraInfo
+ * @returns {string}
+ */
+function formatOrderStatusBadge(status, description, extraInfo = '') {
+    const code = String(status);
+    let badgeClass = 'bg-success bg-opacity-25 text-success';
+    let label = description || 'Tamamlandı';
+
+    switch (code) {
+        case '1':
+            badgeClass = 'bg-info bg-opacity-25 text-info';
+            label = description || 'İşleme Alınıyor';
+            break;
+        case '2':
+            badgeClass = 'bg-success bg-opacity-25 text-success';
+            label = description || 'Tamamlandı';
+            break;
+        case '3':
+            badgeClass = 'bg-danger bg-opacity-25 text-danger';
+            label = description || 'İptal Edildi';
+            if (extraInfo) label += ` - ${extraInfo}`;
+            break;
+        case '99':
+            badgeClass = 'bg-warning bg-opacity-25 text-warning';
+            label = description || 'Teslimat Aşamasında';
+            break;
+        case '199':
+            badgeClass = 'bg-warning bg-opacity-25 text-warning';
+            label = description || 'Ön Sipariş Teslimat Aşamasında';
+            break;
+    }
+
+    return `<span class="badge ${badgeClass} rounded-pill">${label}</span>`;
+}
+
+/**
  * Renders order history inside modal container
  */
 function renderOrderHistory() {
@@ -654,6 +778,7 @@ function renderOrderHistory() {
 
     let html = '<div class="d-flex flex-column gap-3">';
     history.forEach(item => {
+        const badge = formatOrderStatusBadge(item.status || '2', item.statusDesc || 'Tamamlandı', item.extraInfo || '');
         html += `
             <div class="glass-card p-3 border-start border-4 border-primary">
                 <div class="d-flex justify-content-between align-items-start mb-2">
@@ -661,7 +786,7 @@ function renderOrderHistory() {
                         <h6 class="fw-bold mb-0">${item.name} (x${item.quantity})</h6>
                         <small class="text-muted">${item.date}</small>
                     </div>
-                    <span class="badge bg-success bg-opacity-25 text-success rounded-pill">Tamamlandı</span>
+                    <div>${badge}</div>
                 </div>
                 ${item.epinCode ? `
                     <div class="p-2 rounded-3 bg-body-tertiary d-flex justify-content-between align-items-center mt-2 border border-secondary border-opacity-25">

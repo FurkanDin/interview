@@ -7,14 +7,12 @@ class Home
         global $smarty;
 
         $games = [];
-        $products = []; // Will be loaded via AJAX
+        $products = []; 
 
         try {
             $client = new \Turkpin\InterviewTest\TurkpinApiClient();
             $response = $client->getGames();
             
-            // Assume response is array of games or has a 'data' key
-            // Check typical XML to Array converted structure for Turkpin
             if (isset($response['params']['oyunListesi']['oyun'])) {
                 $gameData = $response['params']['oyunListesi']['oyun'];
                 if (isset($gameData['id'])) {
@@ -29,7 +27,6 @@ class Home
                     $games[$game['id']] = $game['name'];
                 }
             } else if (is_array($response)) {
-                // Mock mapping if API structure is direct array
                 foreach ($response as $item) {
                     if (isset($item['id']) && isset($item['name'])) {
                         $games[$item['id']] = $item['name'];
