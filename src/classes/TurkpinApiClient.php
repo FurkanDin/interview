@@ -49,6 +49,10 @@ class TurkpinApiClient
         $xmlData .= '</params></APIRequest>';
 
         $ch = curl_init();
+        if ($ch === false) {
+            throw new \RuntimeException('Unable to initialize the API connection.');
+        }
+
         curl_setopt($ch, CURLOPT_URL, $this->apiUrl);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['DATA' => $xmlData]));
@@ -60,27 +64,83 @@ class TurkpinApiClient
 
         $response = curl_exec($ch);
         $error = curl_error($ch);
+        $httpStatus = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $contentType = (string) (curl_getinfo($ch, CURLINFO_CONTENT_TYPE) ?: 'unknown');
         curl_close($ch);
 
-        if ($error) {
+        if ($response === false) {
             throw new \RuntimeException('API connection failed: ' . $error);
         }
 
-        // Basit XML parse (Turkpin genelde XML kullanır)
-        if (strpos($response, '<?xml') !== false) {
-            $xml = simplexml_load_string($response, 'SimpleXMLElement', LIBXML_NONET);
-            if ($xml === false) {
-                throw new \RuntimeException('Invalid XML response received from API.');
+        $responseBody = trim($response);
+        if ($responseBody === '') {
+            throw new \RuntimeException($this->createInvalidResponseMessage(
+                $cmd,
+                $httpStatus,
+                $contentType,
+                $responseBody
+            ));
+        }
+
+        $decoded = json_decode($responseBody, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        if (str_starts_with($responseBody, '<')) {
+            $previousErrorHandling = libxml_use_internal_errors(true);
+            libxml_clear_errors();
+            $xml = simplexml_load_string($responseBody, 'SimpleXMLElement', LIBXML_NONET);
+            libxml_clear_errors();
+            libxml_use_internal_errors($previousErrorHandling);
+
+            if ($xml !== false && strtolower($xml->getName()) !== 'html') {
+                $xmlData = json_decode(json_encode($xml), true);
+                if (is_array($xmlData)) {
+                    return $xmlData;
+                }
             }
-            return json_decode(json_encode($xml), true);
         }
 
-        $decoded = json_decode($response, true);
-        if (!is_array($decoded)) {
-            throw new \RuntimeException('Invalid response received from API.');
+        throw new \RuntimeException($this->createInvalidResponseMessage(
+            $cmd,
+            $httpStatus,
+            $contentType,
+            $responseBody
+        ));
+    }
+
+    private function createInvalidResponseMessage(
+        string $cmd,
+        int $httpStatus,
+        string $contentType,
+        string $responseBody
+    ): string {
+        $message = sprintf(
+            'Invalid API response for %s (HTTP %d, Content-Type: %s, Length: %d)',
+            $cmd,
+            $httpStatus,
+            $contentType,
+            strlen($responseBody)
+        );
+
+        if ($cmd !== 'epinOyunListesi' || $responseBody === '') {
+            return $message;
         }
 
-        return $decoded;
+        $preview = strip_tags($responseBody);
+        $preview = preg_replace('/\s+/', ' ', $preview) ?? '';
+        $preview = trim(str_replace(
+            [$this->username, $this->password],
+            '[redacted]',
+            $preview
+        ));
+
+        if ($preview !== '') {
+            $message .= sprintf(', Preview: "%s"', substr($preview, 0, 200));
+        }
+
+        return $message;
     }
 
     public function getGames()
