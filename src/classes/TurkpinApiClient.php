@@ -10,13 +10,27 @@ class TurkpinApiClient
 
     public function __construct()
     {
-        $this->apiUrl = $_ENV['API_URL'] ?? 'https://www.turkpin.net/api.php';
-        $this->username = (string) ($_ENV['API_USERNAME'] ?? '');
-        $this->password = (string) ($_ENV['API_PASSWORD'] ?? '');
+        $this->apiUrl = $this->getEnvironmentVariable(
+            'API_URL',
+            'https://www.turkpin.net/api.php'
+        );
+        $this->username = $this->getEnvironmentVariable('API_USERNAME');
+        $this->password = $this->getEnvironmentVariable('API_PASSWORD');
 
         if ($this->username === '' || $this->password === '') {
             throw new \RuntimeException('Turkpin API credentials are not configured.');
         }
+    }
+
+    private function getEnvironmentVariable(string $key, string $default = ''): string
+    {
+        $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
+
+        if ($value === false || $value === null || $value === '') {
+            return $default;
+        }
+
+        return (string) $value;
     }
 
     private function request(string $cmd, array $params = []): array
